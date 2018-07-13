@@ -7,7 +7,7 @@ import DependencyGraphUI from '../component_ui/dependencyGraph';
 import ServiceDataModal from '../component_ui/serviceDataModal';
 import TimeStampUI from '../component_ui/timeStamp';
 import GoToDependencyUI from '../component_ui/goToDependency';
-import {dependenciesTemplate} from '../templates';
+import {logTemplate} from '../templates';
 import {i18nInit} from '../component_ui/i18n';
 
 const DependencyPageComponent = component(function DependencyPage() {
@@ -15,7 +15,7 @@ const DependencyPageComponent = component(function DependencyPage() {
     window.document.title = 'Zipkin - Log';
     this.trigger(document, 'navigate', {route: 'zipkin/log'});
 
-    this.$node.html(dependenciesTemplate());
+    this.$node.html(logTemplate());
 
     const {startTs, endTs} = queryString.parse(location.search);
     $('#endTs').val(endTs || moment().valueOf());
