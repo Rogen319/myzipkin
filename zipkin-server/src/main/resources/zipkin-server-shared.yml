@@ -46,7 +46,7 @@ zipkin:
   storage:
     strict-trace-id: ${STRICT_TRACE_ID:true}
     search-enabled: ${SEARCH_ENABLED:true}
-    type: ${STORAGE_TYPE:mem}
+    type: ${STORAGE_TYPE:elasticsearch}
     mem:
       # Maximum number of spans to keep in memory.  When exceeded, oldest traces (and their spans) will be purged.
       # A safe estimate is 1K of memory per span (each span with 2 annotations + 1 binary annotation), plus
@@ -97,7 +97,7 @@ zipkin:
       use-ssl: ${CASSANDRA_USE_SSL:false}
     elasticsearch:
       # host is left unset intentionally, to defer the decision
-      hosts: ${ES_HOSTS:}
+      hosts: ${ES_HOSTS:http://10.141.211.163:30002}
       pipeline: ${ES_PIPELINE:}
       max-requests: ${ES_MAX_REQUESTS:64}
       timeout: ${ES_TIMEOUT:10000}

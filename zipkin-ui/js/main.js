@@ -10,6 +10,7 @@ import initializeDefault from './page/default';
 import initializeTrace from './page/trace';
 import initializeTraceViewer from './page/traceViewer';
 import initializeDependency from './page/dependency';
+import initializeLog from './page/log';
 import CommonUI from './page/common';
 import loadConfig from './config';
 import {errToStr} from './component_ui/error';
@@ -24,6 +25,7 @@ loadConfig().then(config => {
   crossroads.addRoute(`${contextRoot}traces/{id}`, traceId => initializeTrace(traceId, config));
   crossroads.addRoute(`${contextRoot}traceViewer`, () => initializeTraceViewer(config));
   crossroads.addRoute(`${contextRoot}dependency`, () => initializeDependency(config));
+  crossroads.addRoute(`${contextRoot}log`, () => initializeLog(config));
   crossroads.parse(window.location.pathname);
 }, e => {
   // TODO: better error message, but this is better than a blank screen...
