@@ -10,7 +10,7 @@ import GoToDependencyUI from '../component_ui/goToDependency';
 import {logTemplate} from '../templates';
 import {i18nInit} from '../component_ui/i18n';
 
-const DependencyPageComponent = component(function DependencyPage() {
+const LogPageComponent = component(function LogPage() {
   this.after('initialize', function() {
     window.document.title = 'Zipkin - Log';
     this.trigger(document, 'navigate', {route: 'zipkin/log'});
@@ -32,6 +32,6 @@ const DependencyPageComponent = component(function DependencyPage() {
   });
 });
 
-export default function initializeDependencies(config) {
-  DependencyPageComponent.attachTo('.content', {config});
+export default function initializeLog(config) {
+  LogPageComponent.attachTo('.content', {config});
 }
