@@ -27,7 +27,7 @@ var webpackConfig = {
             test: /.scss$/,
             loader: ExtractTextPlugin.extract('style-loader', 'css-loader?sourceMap!sass-loader?sourceMap')
         }, {
-            test: /\.woff2?$|\.ttf$|\.eot$|\.svg|\.png$/,
+            test: /\.(eot|svg|ttf|woff|woff2?|png|gif)\w*/,
             loader: 'file'
         }]
     },
@@ -42,7 +42,8 @@ var webpackConfig = {
     plugins: [
         new webpack.ProvidePlugin({
             $: "jquery",
-            jQuery: "jquery"
+            jQuery: "jquery",
+            "window.jQuery": "jquery"
         }),
         new ExtractTextPlugin("app-[hash].min.css", {allChunks: true}),
         new HtmlWebpackPlugin({

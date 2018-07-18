@@ -1,0 +1,22 @@
+#trace-tree{
+  width:250px
+}
+#trace-tree ul{
+  padding-left:20px;
+}
+#trace-tree li{
+  list-style-type:none;
+}
+.tree-node:hover{
+  cursor:pointer;
+}
+#trace-tree a{
+  color:#000;
+}
+#trace-tree a:hover{
+  text-decoration: none;
+  color:#000;
+}
+#trace-tree ul li i:first-child{
+  margin:0 5px;
+}
