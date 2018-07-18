@@ -12,7 +12,7 @@ import {logTemplate} from '../templates';
 import {i18nInit} from '../component_ui/i18n';
 import '../../libs/layer/layer';
 
-const DependencyPageComponent = component(function DependencyPage() {
+const LogPageComponent = component(function LogPage() {
   this.after('initialize', function() {
     window.document.title = 'Zipkin - Log';
     this.trigger(document, 'navigate', {route: 'zipkin/log'});
@@ -308,6 +308,6 @@ function praseRequestWithTraceID(requestWithTraceID) {
   return data;
 }
 
-export default function initializeDependencies(config) {
-    DependencyPageComponent.attachTo('.content', {config});
+export default function initializeLog(config) {
+  LogPageComponent.attachTo('.content', {config});
 }
