@@ -6,7 +6,7 @@ import DependencyData from '../component_data/dependency';
 import DependencyGraphUI from '../component_ui/dependencyGraph';
 import ServiceDataModal from '../component_ui/serviceDataModal';
 import TimeStampUI from '../component_ui/timeStamp';
-import GoToDependencyUI from '../component_ui/goToDependency';
+import GoToLogUI from '../component_ui/goToLog';
 import SelectTree from '../component_ui/selectTree';
 import {logTemplate} from '../templates';
 import {i18nInit} from '../component_ui/i18n';
@@ -19,190 +19,31 @@ const LogPageComponent = component(function LogPage() {
 
     this.$node.html(logTemplate());
 
+    $('#logVis').css('height',window.innerWidth * 0.15 +'');
     const {startTs, endTs} = queryString.parse(location.search);
     $('#endTs').val(endTs || moment().valueOf());
     // When #1185 is complete, the only visible granularity is day
     $('#startTs').val(startTs || moment().valueOf() - 86400000);
-
     DependencyData.attachTo('#dependency-container');
     DependencyGraphUI.attachTo('#dependency-container', {config: this.attr.config});
     ServiceDataModal.attachTo('#service-data-modal-container');
     TimeStampUI.attachTo('#end-ts');
     TimeStampUI.attachTo('#start-ts');
-    GoToDependencyUI.attachTo('#dependency-query-form');
+    GoToLogUI.attachTo('#dependency-query-form');
     SelectTree.attachTo('#select-tree-area');
     i18nInit('dep');
-    this.$node.find('#select-tree').click(e => {
-      e.preventDefault();
-      showTraceTreeWindow();
-    });
+    showSelectTree();
   });
 });
 
-function showTraceTreeWindow() {
-  let html = '<div class="container" id="trace-tree">';
-  var requestWithTraceID = '{' +
-      '    "status": true,' +
-      '    "message": "Succeed to get the request with trace ids. The size of request types is [7].",' +
-      '    "requestWithTraceInfoList": [' +
-      '        {' +
-      '            "requestType": "QueryTravelInfo",' +
-      '            "traceInfoList": [' +
-      '                {' +
-      '                    "traceId": "7fbab20b14536253",' +
-      '                    "serviceName": [' +
-      '                        "ts-basic-service",' +
-      '                        "ts-config-service",' +
-      '                        "ts-price-service",' +
-      '                        "ts-travel-service",' +
-      '                        "ts-train-service",' +
-      '                        "ts-route-service",' +
-      '                        "ts-station-service",' +
-      '                        "ts-ticketinfo-service",' +
-      '                        "istio-mixer",' +
-      '                        "istio-policy",' +
-      '                        "ts-seat-service",' +
-      '                        "ts-order-service",' +
-      '                        "istio-ingressgateway"' +
-      '                    ]' +
-      '                }' +
-      '            ],' +
-      '            "count": 1' +
-      '        },' +
-      '        {' +
-      '            "requestType": "PreserveTicket",' +
-      '            "traceInfoList": [' +
-      '                {' +
-      '                    "traceId": "6964ee4b013c097e",' +
-      '                    "serviceName": [' +
-      '                        "ts-basic-service",' +
-      '                        "ts-config-service",' +
-      '                        "ts-price-service",' +
-      '                        "ts-travel-service",' +
-      '                        "ts-train-service",' +
-      '                        "ts-assurance-service",' +
-      '                        "ts-contacts-service",' +
-      '                        "ts-food-service",' +
-      '                        "ts-station-service",' +
-      '                        "ts-route-service",' +
-      '                        "ts-notification-service",' +
-      '                        "ts-security-service",' +
-      '                        "ts-ticketinfo-service",' +
-      '                        "istio-mixer",' +
-      '                        "istio-policy",' +
-      '                        "ts-seat-service",' +
-      '                        "ts-order-service",' +
-      '                        "ts-consign-service",' +
-      '                        "istio-ingressgateway",' +
-      '                        "ts-sso-service",' +
-      '                        "ts-preserve-service",' +
-      '                        "ts-consign-price-service",' +
-      '                        "ts-order-other-service"' +
-      '                    ]' +
-      '                }' +
-      '            ],' +
-      '            "count": 1' +
-      '        },' +
-      '        {' +
-      '            "requestType": "Execute",' +
-      '            "traceInfoList": [' +
-      '                {' +
-      '                    "traceId": "0849b08983c89b19",' +
-      '                    "serviceName": [' +
-      '                        "ts-execute-service",' +
-      '                        "ts-order-service",' +
-      '                        "istio-ingressgateway"' +
-      '                    ]' +
-      '                }' +
-      '            ],' +
-      '            "count": 1' +
-      '        },' +
-      '        {' +
-      '            "requestType": "Collect",' +
-      '            "traceInfoList": [' +
-      '                {' +
-      '                    "traceId": "eff7a58f18f351c2",' +
-      '                    "serviceName": [' +
-      '                        "ts-execute-service",' +
-      '                        "istio-mixer",' +
-      '                        "istio-policy",' +
-      '                        "ts-order-service",' +
-      '                        "istio-ingressgateway"' +
-      '                    ]' +
-      '                }' +
-      '            ],' +
-      '            "count": 1' +
-      '        },' +
-      '        {' +
-      '            "requestType": "Pay",' +
-      '            "traceInfoList": [' +
-      '                {' +
-      '                    "traceId": "87736f2a2c92704c",' +
-      '                    "serviceName": [' +
-      '                        "ts-inside-payment-service",' +
-      '                        "istio-mixer",' +
-      '                        "istio-policy",' +
-      '                        "ts-order-service",' +
-      '                        "istio-ingressgateway"' +
-      '                    ]' +
-      '                }' +
-      '            ],' +
-      '            "count": 1' +
-      '        },' +
-      '        {' +
-      '            "requestType": "Login",' +
-      '            "traceInfoList": [' +
-      '                {' +
-      '                    "traceId": "23dff6605db17edd",' +
-      '                    "serviceName": [' +
-      '                        "istio-mixer",' +
-      '                        "istio-policy",' +
-      '                        "ts-login-service",' +
-      '                        "ts-verification-code-service",' +
-      '                        "istio-ingressgateway",' +
-      '                        "ts-sso-service"' +
-      '                    ]' +
-      '                }' +
-      '            ],' +
-      '            "count": 1' +
-      '        },' +
-      '        {' +
-      '            "requestType": "GetFood",' +
-      '            "traceInfoList": [' +
-      '                {' +
-      '                    "traceId": "41e70c26dd7a96cf",' +
-      '                    "serviceName": [' +
-      '                        "ts-travel-service",' +
-      '                        "istio-mixer",' +
-      '                        "istio-policy",' +
-      '                        "ts-food-service",' +
-      '                        "ts-station-service",' +
-      '                        "ts-food-map-service",' +
-      '                        "ts-route-service",' +
-      '                        "istio-ingressgateway"' +
-      '                    ]' +
-      '                }' +
-      '            ],' +
-      '            "count": 1' +
-      '        }' +
-      '    ]' +
-      '}';
 
+function showSelectTree() {
+  let html = '<div class="container" id="trace-tree">';
+  var requestWithTraceID = getRequestWithTraceID();
   var data = praseRequestWithTraceID(requestWithTraceID);
   html += loadTree(data).html();
   html += '</div>';
-  layer.open({
-    type: 1,
-    offset: ['200px', '0'],
-    area: ['300px', '500px'],
-    title: '选择调用链',
-    shade: 0,
-    shadeClose: false,
-    closeBtn: 1,
-    anim: 3,
-    fixed: true,
-    content: html
-  });
+  $('#selectTree').html(html);
   nodeClick($('#trace-tree'));
 }
 
@@ -275,7 +116,8 @@ function nodeClick(box) {
       for (let i = 0;i < allService.length;i++) {
         allServiceName[i] = allService[i].title;
       }
-      hignlightServices(allServiceName);
+      highlightServices(allServiceName);
+      initLogVis($.trim($(this).find('.title').html()));
     }
     else if (($.trim($(this).find('.open').val()) === 'service')) {
 
@@ -285,8 +127,7 @@ function nodeClick(box) {
 
 function praseRequestWithTraceID(requestWithTraceID) {
   var data = [];
-  var jsonObj = JSON.parse(requestWithTraceID);
-  var requestTypeList = jsonObj.requestWithTraceInfoList;
+  var requestTypeList = requestWithTraceID.requestWithTraceInfoList;
   for (var i = 0; i < requestTypeList.length; i++) {
     var rootNode = {};
     rootNode.title = requestTypeList[i].requestType;
@@ -324,7 +165,7 @@ function praseRequestWithTraceID(requestWithTraceID) {
 }
 
 // 高亮
-function hignlightServices(services) {
+function highlightServices(services) {
   initialServiceColor();
   let nodes = document.getElementsByClassName('node enter');
   for (let i = 0; i < nodes.length; i++) {
@@ -352,6 +193,56 @@ function initialServiceColor() {
   }
 }
 
+function getRequestWithTraceID() {
+  var result;
+  $.ajax({
+    async: false,
+    url: 'http://10.141.212.24:17319/getRequestWithTraceID',
+    type: 'get',
+    dataType: 'json',
+    success: function (data) {
+      result = data;
+    },
+    error: function (event) {
+      layer.msg('获取调用信息失败',{icon:2});
+    }
+  });
+  return result;
+}
+
+function getLogByTraceID(traceId) {
+  var result;
+  $.ajax({
+    async: false,
+    url: 'http://10.141.212.24:16319/getLogByTraceId/'+traceId,
+    type: 'get',
+    dataType: 'json',
+    success: function (data) {
+      result = data;
+    },
+    error: function (event) {
+      layer.msg('获取调用链日志失败',{icon:2});
+    }
+  });
+  return result;
+}
+
+function initLogVis(traceId) {
+  let html = '';
+  let traceLog = getLogByTraceID(traceId);
+  let logs = traceLog.logs;
+  for (let i = 0;i < logs.length;i++) {
+    html += '<tr>'+
+      ' <td>'+ logs[i].serviceInfo.serviceName +'</td>'+
+      ' <td>'+ logs[i].serviceInfo.instanceInfo.instanceName +'</td>'+
+      ' <td>'+ logs[i].logInfo +'</td>'+
+      ' <td>'+ logs[i].logType +'</td>'+
+      ' <td>'+ logs[i].serviceInfo.node.name +'</td>'+
+      '</tr>';
+  }
+  $('#logTable').html(html);
+
+}
 
 export default function initializeLog(config) {
   LogPageComponent.attachTo('.content', {config});

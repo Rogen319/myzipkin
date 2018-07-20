@@ -1,5 +1,7 @@
 #trace-tree{
-  width:250px
+  width:100%;
+  padding-left: 20px;
+  padding-right: 20px;
 }
 #trace-tree ul{
   padding-left:20px;
@@ -19,4 +21,13 @@
 }
 #trace-tree ul li i:first-child{
   margin:0 5px;
+}
+
+#logVis {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  background-color: #ffffff;
+  overflow-x: hidden;
+  /*overflow-y: scroll;*/
 }

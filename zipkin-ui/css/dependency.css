@@ -62,9 +62,3 @@ g.hover-light rect {
   fill: #8a9eff;
 }
 
-/* 新添加Log效果 */
-.select-tree-entrance {
-  position: fixed;
-  left: 0;
-  bottom: 0;
-}
