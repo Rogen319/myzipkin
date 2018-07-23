@@ -18,35 +18,6 @@
   </form>
 </div>
 
-<div id="service-data-modal-container">
-  <div class="modal" id="serviceModal" tabindex="-1">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-          <h3 class="modal-title">
-            <span id="serviceModalTitle">[title]</span>
-          </h3>
-        </div>
-        <div class="modal-body">
-
-          <div class="container">
-            <div class="row">
-              <div class="col-sm-6">
-                <h4>Used by</h4>
-                <ul id="serviceUsedByList"></ul>
-              </div>
-              <div class="col-sm-6">
-                <h4>Uses</h4>
-                <ul id="serviceUsesList"></ul>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <div class="modal" id="dependencyModal" tabindex="-1">
     <div class="modal-dialog">
       <div class="modal-content">
@@ -94,21 +65,22 @@
 </div>
 
 <div class="container table-responsive" id="logVis">
-  <table class="table table-hover table-bordered table-striped">
-    <thead>
+  <table class="table table-hover table-bordered table-condensed" style="width: 100%">
+    <thead id="logHead">
       <tr>
-        <th>Service Name</th>
-        <th>Service Instance Name</th>
-        <th>LogInfo</th>
+        <th>Time</th>
         <th>LogType</th>
         <th>Node</th>
+        <th>Service</th>
+        <th>Instance</th>
+        <th>LogInfo</th>
       </tr>
     </thead>
     <tbody id="logTable">
     </tbody>
-
   </table>
 </div>
+
 
 <!--&lt;!&ndash; 新添加树形选择框入口 &ndash;&gt;-->
 <!--<div class="select-tree-entrance" id="select-tree-area">-->
