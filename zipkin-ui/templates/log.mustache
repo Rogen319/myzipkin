@@ -18,44 +18,8 @@
   </form>
 </div>
 
-  <div class="modal" id="dependencyModal" tabindex="-1">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-          <h3 class="modal-title text-center">
-            <div id="dependencyModalParent">[parent]</div>
-            <div class=""><span class="glyphicon glyphicon-arrow-down"></span></div>
-            <div id="dependencyModalChild">[child]</div>
 
-          </h3>
-        </div>
-        <div class="modal-body">
-          <table class="table table-striped">
-            <thead>
-            <tr>
-              <th>Key</th>
-              <th>Value</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr>
-              <td>Number of calls</td>
-              <td id="dependencyCallCount">?</td>
-            </tr>
-            <tr>
-              <td>Number of errors</td>
-              <td id="dependencyErrorCount">?</td>
-            </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="container-fluid">
+<div class="row">
     <div class="col-sm-2 col-md-2 col-lg-2" id="selectTree">
     </div>
     <div id="dependency-container" class="col-sm-10 col-md-10 col-lg-10">
@@ -65,10 +29,10 @@
 </div>
 
 <div class="container table-responsive" id="logVis">
-  <table class="table table-hover table-bordered table-condensed" style="width: 100%">
+  <table class="table table-hover table-bordered table-condensed col-sm12 col-md-12 col-lg-12">
     <thead id="logHead">
       <tr>
-        <th>Time</th>
+        <th >Time</thclass>
         <th>Service</th>
         <th>Instance</th>
         <th>Node</th>

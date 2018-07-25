@@ -1,7 +1,5 @@
 #trace-tree{
   width:100%;
-  padding-left: 20px;
-  padding-right: 20px;
 }
 #trace-tree ul{
   padding-left:20px;
@@ -37,8 +35,24 @@
   overflow-x: hidden;
   display: none;
   /*overflow-y: scroll;*/
+  word-break:break-all;
+  word-wrap:break-all;
 }
 
+/*#logVis table tbody {*/
+  /*display: block;*/
+  /*overflow-y: scroll;*/
+/*}*/
+
+/*#logVis table thead, tbody tr {*/
+  /*display: table;*/
+  /*width: 100%;*/
+  /*table-layout: fixed;*/
+/*}*/
+
+/*#logVis table thead {*/
+  /*width: calc(100% - 1em);*/
+/*}*/
 #logHead {
   position: fixed;
   display: block;
@@ -50,6 +64,11 @@
 #logTable {
   display: block;
   width: 100%;
+}
+
+#selectTree {
+  margin-left: -15px;
+  margin-right: -15px;
 }
 .nodeInfo {
   display: none;

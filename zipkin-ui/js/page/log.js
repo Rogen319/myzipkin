@@ -22,6 +22,7 @@ const LogPageComponent = component(function LogPage() {
       this.$node.html(logTemplate());
 
       $('#logVis').css('height', window.screen.height * 0.3 + '');
+
       const {startTs, endTs} = queryString.parse(location.search);
       $('#endTs').val(endTs || moment().valueOf());
       // When #1185 is complete, the only visible granularity is day
@@ -46,7 +47,7 @@ var currentTraceId = '';
 var serviceInstanceNames = new Array();
 var globeTraceLogData = {};
 function showSelectTree(requestWithTraceID) {
-  let html = '<div class="container-fluid" id="trace-tree">';
+  let html = '<div id="trace-tree">';
   var data = praseRequestWithTraceID(requestWithTraceID);
   html += loadTree(data).html();
   html += '</div>';
@@ -69,17 +70,14 @@ function loadTree(tData) {
     if (tData[i].children != undefined) {
         // 添加图标样式
       icon.addClass(tData[i].open ? 'fa fa-minus-square-o' : 'fa fa-plus-square-o');
-      var ic;
-      if (tData[i].field === 'root') {
-        ic = $('<i>').addClass('fa fa-folder-open-o');
-      }
-      else if (tData[i].field === 'root') {
-        ic = $('<i>').addClass('fa fa-folder-open-o');
-      }
-      else {
-        ic = $('<i>').addClass('fa fa-folder-open-o');
-      }
-      icon.after(ic).addClass('status');
+      // var ic;
+      // if (tData[i].field === 'root') {
+      //   ic = $('<i>').addClass('fa fa-list-ul').attr('aria-hidden','true');
+      // }
+      // else if (tData[i].field === 'trace') {
+      //   ic = $('<i>').addClass('fa fa-link').attr('aria-hidden','true');
+      // }
+      // icon.after(ic).addClass('status');
       node.addClass('tree-node');
 
         // 添加标记节点是否打开
@@ -94,7 +92,7 @@ function loadTree(tData) {
       }
     }
     else {
-      icon.addClass('fa fa-file-text-o');
+      icon.addClass('fa fa-building-o').attr('aria-hidden','true');
       node.addClass('tree-node');
         // 叶子节点新增是否可选
       //$('<input>').addClass('candidate').val(tData[i].candidate).css('display', 'none').appendTo(li);
@@ -135,7 +133,7 @@ function nodeClick(box) {
         currentTraceId = t;
         globeTraceLogData = getLogByTraceID(currentTraceId);
         $(this).parent().parent('ul').parent().parent().find('.tree-node').each(function() {
-          if($.trim($(this).find('.field').html()) === 'trace') {
+          if ($.trim($(this).find('.field').html()) === 'trace') {
             if ($.trim($(this).find('.title').html()) !== t) {
               $(this).css({'background-color': '', 'color' : ''});
               $(this).next().css('display', 'none');
@@ -308,22 +306,22 @@ function initLogVis(traceId) {
   let logs = traceLog.logs;
   for (let i = 0;i < logs.length;i++) {
     html += '<tr>'+
-      ' <td>'+ logs[i].timestamp +'</td>'+
-      ' <td>' + logs[i].serviceInfo.serviceName +'</td>'+
-      ' <td>'+
+      ' <td class = "col-sm-1 col-md-1">'+ logs[i].timestamp +'</td>'+
+      ' <td class = "col-sm-1 col-md-1">' + logs[i].serviceInfo.serviceName +'</td>'+
+      ' <td class = "col-sm-2 col-md-2">'+
       '   <button class="btn btn-default serviceInstanceBtn">' +
             logs[i].serviceInfo.instanceInfo.instanceName +
       '     <div class = "serviceInstanceInfo">'+ JSON.stringify(logs[i].serviceInfo.instanceInfo) +'</div>'+
       '   </button>'+
       ' </td>' +
-      ' <td>'+
+      ' <td class = "col-sm-1 col-md-1">'+
       '   <button class="btn btn-default nodeBtn">' +
       logs[i].serviceInfo.node.name +
       '     <div class = "nodeInfo">'+ JSON.stringify(logs[i].serviceInfo.node) +'</div>'+
       '   </button>'+
       '</td>'+
-      ' <td>'+ logs[i].logType +'</td>'+
-      ' <td>'+ logs[i].logInfo +'</td>'+
+      ' <td class = "col-sm-1 col-md-1">'+ logs[i].logType +'</td>'+
+      ' <td class = "col-sm-6 col-md-6">'+ logs[i].logInfo +'</td>'+
       '</tr>';
   }
 
@@ -338,6 +336,9 @@ function initLogVis(traceId) {
     }
     let thHeight = thead.children('th').eq(0).css('height');
     $('#logTable').css('padding-top', thHeight+'');
+    // $('#logTable').parent().width($('#logTable').parent().parent().width());
+    // $('#logTable').width($('#logTable').parent().parent().width());
+    // $('#logHead').width($('#logHead').parent().parent().width());
     $('#logTable').find('.nodeBtn').each(function () {
       let node = JSON.parse($(this).find('.nodeInfo').html());
       $(this).click(function () {
