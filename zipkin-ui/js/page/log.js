@@ -14,34 +14,39 @@ import '../../libs/layer/layer';
 
 const LogPageComponent = component(function LogPage() {
   this.after('initialize', function() {
-    window.document.title = 'Zipkin - Log';
-    this.trigger(document, 'navigate', {route: 'zipkin/log'});
+    const loading = layer.load(2);
+    try {
+      window.document.title = 'Zipkin - Log';
+      this.trigger(document, 'navigate', {route: 'zipkin/log'});
 
-    this.$node.html(logTemplate());
+      this.$node.html(logTemplate());
 
-    $('#logVis').css('height',window.screen.height * 0.3 +'');
-    const {startTs, endTs} = queryString.parse(location.search);
-    $('#endTs').val(endTs || moment().valueOf());
-    // When #1185 is complete, the only visible granularity is day
-    $('#startTs').val(startTs || moment().valueOf() - 86400000);
-    DependencyData.attachTo('#dependency-container');
-    LogGraphUI.attachTo('#dependency-container', {config: this.attr.config});
-    ServiceDataModal.attachTo('#service-data-modal-container');
-    TimeStampUI.attachTo('#end-ts');
-    TimeStampUI.attachTo('#start-ts');
-    GoToLogUI.attachTo('#dependency-query-form');
-    SelectTree.attachTo('#select-tree-area');
-    i18nInit('dep');
-    showSelectTree();
+      $('#logVis').css('height', window.screen.height * 0.3 + '');
+      const {startTs, endTs} = queryString.parse(location.search);
+      $('#endTs').val(endTs || moment().valueOf());
+      // When #1185 is complete, the only visible granularity is day
+      $('#startTs').val(startTs || moment().valueOf() - 86400000);
+      DependencyData.attachTo('#dependency-container');
+      LogGraphUI.attachTo('#dependency-container', {config: this.attr.config});
+      ServiceDataModal.attachTo('#service-data-modal-container');
+      TimeStampUI.attachTo('#end-ts');
+      TimeStampUI.attachTo('#start-ts');
+      GoToLogUI.attachTo('#dependency-query-form');
+      SelectTree.attachTo('#select-tree-area');
+      i18nInit('dep');
+      getRequestWithTraceIDByTimeRange();
+      layer.close(loading);
+    } catch (e) {
+      layer.close(loading);
+    }
   });
 });
 
 var currentTraceId = '';
 var serviceInstanceNames = new Array();
 var globeTraceLogData = {};
-function showSelectTree() {
-  let html = '<div class="container" id="trace-tree">';
-  var requestWithTraceID = getRequestWithTraceID();
+function showSelectTree(requestWithTraceID) {
+  let html = '<div class="container-fluid" id="trace-tree">';
   var data = praseRequestWithTraceID(requestWithTraceID);
   html += loadTree(data).html();
   html += '</div>';
@@ -87,86 +92,79 @@ function loadTree(tData) {
       } else {
         $child.hide().appendTo(li);
       }
-    } else {
+    }
+    else {
       icon.addClass('fa fa-file-text-o');
+      node.addClass('tree-node');
         // 叶子节点新增是否可选
-      $('<input>').addClass('candidate').val(tData[i].candidate).css('display', 'none').appendTo(li);
+      //$('<input>').addClass('candidate').val(tData[i].candidate).css('display', 'none').appendTo(li);
     }
   }
   return ul;
 }
 
-setTimeout(function () {
-  //初始化Service绑定事件
-  initServiceClick();
-},1000);
-
 function nodeClick(box) {
   box.find('.tree-node').click(function() {
     layer.load(2);
-    // 判断该节点是否开启
-    if ($.trim($(this).find('.open').val()) === 'true') {
-        // 已开启，则关闭节点
-      $(this).next().slideUp(500);
-      $(this).find('.open').val('false');
-      $(this).find('.status').removeClass('fa-minus-square-o').addClass('fa-plus-square-o');
-    }
-    else {
-      // 开启前关闭节点下的所有节点
-      $(this).next().find('.tree-node').each(function() {
-        $(this).next().css('display', 'none');
+    try {
+      // 判断该节点是否开启
+      if ($.trim($(this).find('.open').val()) === 'true') {
+          // 已开启，则关闭节点
+        $(this).next().slideUp(500);
         $(this).find('.open').val('false');
         $(this).find('.status').removeClass('fa-minus-square-o').addClass('fa-plus-square-o');
-      });
+      }
+      else {
+        // 开启前关闭节点下的所有节点
+        $(this).next().find('.tree-node').each(function() {
+          $(this).next().css('display', 'none');
+          $(this).find('.open').val('false');
+          $(this).find('.status').removeClass('fa-minus-square-o').addClass('fa-plus-square-o');
+        });
 
-      // 已关闭，则开启节点
-      $(this).find('.open').val('true');
-      $(this).find('.status').removeClass('fa-plus-square-o').addClass('fa-minus-square-o');
-      // 开启节点下的节点
+        // 已关闭，则开启节点
+        $(this).find('.open').val('true');
+        $(this).find('.status').removeClass('fa-plus-square-o').addClass('fa-minus-square-o');
+        // 开启节点下的节点
 
-      $(this).next().slideDown(500);
-    }
-    // 判断是不是调用链
-    if ($.trim($(this).find('.field').html()) === 'trace') {
-      // let x = $(this).parent().parent('ul').children('li');
-      // for(let i = 0;i < x.length;i++) {
-      //   let t = x.eq(i);
-      //   if($.trim($(this).find('.title').html()) != $.trim(t.find('.title').html())) {
-      //     t.find('.tree-node').next().slideUp(500);
-      //     t.find('.tree-node').find('.open').val('false');
-      //     t.find('.tree-node').find('.status').removeClass('fa-minus-square-o').addClass('fa-plus-square-o');
-      //   }
-      // }
-      let t = $.trim($(this).find('.title').html());
-      currentTraceId = t;
-      globeTraceLogData = getLogByTraceID(currentTraceId);
-      $(this).parent().parent('ul').parent().parent().find('.tree-node').each(function() {
-        if($.trim($(this).find('.field').html()) === 'trace') {
-          if ($.trim($(this).find('.title').html()) !== t) {
-            $(this).css({'background-color': '', 'color': ''});
-            $(this).next().css('display', 'none');
-            $(this).find('.open').val('false');
-            $(this).find('.status').removeClass('fa-minus-square-o').addClass('fa-plus-square-o');
+        $(this).next().slideDown(500);
+      }
+      // 判断是不是调用链
+      if ($.trim($(this).find('.field').html()) === 'trace') {
+        let t = $.trim($(this).find('.title').html());
+        currentTraceId = t;
+        globeTraceLogData = getLogByTraceID(currentTraceId);
+        $(this).parent().parent('ul').parent().parent().find('.tree-node').each(function() {
+          if($.trim($(this).find('.field').html()) === 'trace') {
+            if ($.trim($(this).find('.title').html()) !== t) {
+              $(this).css({'background-color': '', 'color' : ''});
+              $(this).next().css('display', 'none');
+              $(this).find('.open').val('false');
+              $(this).find('.status').removeClass('fa-minus-square-o').addClass('fa-plus-square-o');
+            }
+            else {
+              $(this).css({'background-color': '#777777', 'color': '#FFFFFF'});
+            }
           }
-          else {
-            $(this).css({'background-color': '#777777', 'color': '#FFFFFF'});
-          }
-        }
-      });
-      if ($.trim($(this).find('.open').val()) === 'true') {
+        });
         const allService = JSON.parse($.trim($(this).find('.serviceList').html()));
         const allServiceName = [];
         for (let i = 0; i < allService.length; i++) {
           allServiceName[i] = allService[i].title;
         }
-        highlightServices(allServiceName);
-        initLogVis($.trim($(this).find('.title').html()));
+        initServiceClick(allServiceName);
+        if ($.trim($(this).find('.open').val()) === 'true') {
+          highlightServices(allServiceName);
+          initLogVis($.trim($(this).find('.title').html()));
+        }
       }
+      else if ($.trim($(this).find('.field').html()) === 'service') {
+        showServiceInfo($.trim($(this).find('.title').html()));
+      }
+      layer.closeAll('loading');
+    }catch (e) {
+      layer.closeAll('loading');
     }
-    else if (($.trim($(this).find('.open').val()) === 'service')) {
-
-    }
-    layer.closeAll('loading');
   });
 }
 
@@ -255,6 +253,36 @@ function getRequestWithTraceID() {
   return result;
 }
 
+function getRequestWithTraceIDByTimeRange() {
+  let result;
+  let time = {};
+  let parm = window.location.search;
+  if (parm.length > 1){
+    parm = parm.substring(1,parm.length);
+    time.endTime = parseInt(parm.split('&')[0].split('=')[1]);
+    time.lookback = time.endTime - parm.split('&')[1].split('=')[1];
+  }
+  else{
+    time.endTime = (new Date()).getTime();
+    time.lookback = 86400000 ;
+  }
+  $.ajax({
+    async: true,
+    url: 'http://10.141.212.24:17319/getRequestWithTraceIDByTimeRange',
+    type: 'post',
+    data: JSON.stringify(time),
+    dataType: 'json',
+    contentType: "application/json",
+    success: function (data) {
+      result = data;
+      showSelectTree(result);
+    },
+    error: function (event) {
+      layer.msg('获取调用信息失败',{icon:2});
+    }
+  });
+}
+
 function getLogByTraceID(traceId) {
   var result = '';
   $.ajax({
@@ -280,14 +308,7 @@ function initLogVis(traceId) {
   let logs = traceLog.logs;
   for (let i = 0;i < logs.length;i++) {
     html += '<tr>'+
-      ' <td>'+ logs[i].timestamp.split('.')[0] +'</td>'+
-      ' <td>'+ logs[i].logType +'</td>'+
-      ' <td>'+
-      '   <button class="btn btn-default nodeBtn">' +
-            logs[i].serviceInfo.node.name +
-      '     <div class = "nodeInfo">'+ JSON.stringify(logs[i].serviceInfo.node) +'</div>'+
-      '   </button>'+
-      '</td>'+
+      ' <td>'+ logs[i].timestamp +'</td>'+
       ' <td>' + logs[i].serviceInfo.serviceName +'</td>'+
       ' <td>'+
       '   <button class="btn btn-default serviceInstanceBtn">' +
@@ -295,6 +316,13 @@ function initLogVis(traceId) {
       '     <div class = "serviceInstanceInfo">'+ JSON.stringify(logs[i].serviceInfo.instanceInfo) +'</div>'+
       '   </button>'+
       ' </td>' +
+      ' <td>'+
+      '   <button class="btn btn-default nodeBtn">' +
+      logs[i].serviceInfo.node.name +
+      '     <div class = "nodeInfo">'+ JSON.stringify(logs[i].serviceInfo.node) +'</div>'+
+      '   </button>'+
+      '</td>'+
+      ' <td>'+ logs[i].logType +'</td>'+
       ' <td>'+ logs[i].logInfo +'</td>'+
       '</tr>';
   }
@@ -421,13 +449,16 @@ function showServiceInstanceInfo(serviceInstance) {
   });
 }
 
-function initServiceClick() {
+function initServiceClick(allServiceName) {
   var ss = $('#dependency-container').find('.node.enter')
   ss.each(function() {
+    $(this).unbind('click');
     let serviceName = $(this).find('text').children().eq(0).html();
-    $(this).click(function () {
-      showServiceInfo(serviceName);
-    });
+    if(allServiceName.contains(serviceName)){
+      $(this).click(function () {
+        showServiceInfo(serviceName);
+      });
+    }
   });
 }
 
@@ -467,7 +498,7 @@ Array.prototype.contains = function(element) {
 function getInstanceInfo(data, serviceName){
   let instanceInfos = new Map();
   let serviceInstanceNames2 = new Array();
-  for (var i = data.logs.length - 1; i >= 0; i--) {
+  for (let i = 0; i < data.logs.length; i++) {
     let log = data.logs[i];
 
     if (log.serviceInfo.serviceName == serviceName) {
@@ -516,7 +547,7 @@ function getInstanceInfo(data, serviceName){
 
         instanceInfos.set(log.serviceInfo.instanceInfo.instanceName, instanceInfo);
       }
-      if (serviceInstanceNames2.contains(log.serviceInfo.instanceInfo.instanceName)){
+      else {
         let instanceInfo = instanceInfos.get(log.serviceInfo.instanceInfo.instanceName);
         let logInfo = {};
 
@@ -543,7 +574,6 @@ function constructLogArea(instanceName, instanceInfoMap){
     logHtml += '<tr>';
     logHtml += '<td>'+logInfo.time+'</td>';
     logHtml += '<td>'+logInfo.logType+'</td>';
-    logHtml += '<td>'+logInfo.requestType+'</td>';
     logHtml += '<td>'+logInfo.message+'</td>';
     logHtml += '</tr>';
   }
@@ -551,7 +581,7 @@ function constructLogArea(instanceName, instanceInfoMap){
 }
 
 function setServiceInstanceNames(data, serviceName){
-  for (let i = data.logs.length - 1; i >= 0; i--) {
+  for (let i = 0; i < data.logs.length; i++) {
     let log = data.logs[i];
 
     if (log.serviceInfo.serviceName == serviceName) {
@@ -635,7 +665,7 @@ function loadLogInfo(serviceName){
     +          '<div class="col-md-10">'
     +              '<p class="lead">Instance Information</p>'
     +              '<div id = "instanceInformation">'
-    +              '</div>';
+    +              '</div>'
   +          '</div>'
   +       '</div>'
   +   '</div>'
@@ -683,7 +713,6 @@ function loadRightInfo(instanceNameLocal, instanceInfoMap){
   html +=                                        '<tr>';
   html +=                                           '<th>Time</th>';
   html +=                                           '<th>logType</th>';
-  html +=                                           '<th>requestType</th>';
   html +=                                           '<th>logInfo</th>';
   html +=                                        '</tr>';
   html +=                                        constructLogArea(instanceNameLocal, instanceInfoMap);
