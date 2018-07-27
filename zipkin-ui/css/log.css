@@ -39,6 +39,20 @@
   word-wrap:break-all;
 }
 
+#logVis .table tbody tr td{
+  text-align: center;
+  vertical-align: middle;
+}
+
+#logVis .table thead tr th{
+  text-align: center;
+  vertical-align: middle;
+}
+
+#logVis .btn{
+  border: none;
+}
+
 /*#logVis table tbody {*/
   /*display: block;*/
   /*overflow-y: scroll;*/

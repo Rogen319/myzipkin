@@ -234,22 +234,22 @@ function initialServiceColor() {
   }
 }
 
-function getRequestWithTraceID() {
-  var result;
-  $.ajax({
-    async: false,
-    url: 'http://10.141.212.24:17319/getRequestWithTraceID',
-    type: 'get',
-    dataType: 'json',
-    success: function (data) {
-      result = data;
-    },
-    error: function (event) {
-      layer.msg('获取调用信息失败',{icon:2});
-    }
-  });
-  return result;
-}
+// function getRequestWithTraceID() {
+//   var result;
+//   $.ajax({
+//     async: false,
+//     url: 'http://10.141.212.24:17319/getRequestWithTraceID',
+//     type: 'get',
+//     dataType: 'json',
+//     success: function (data) {
+//       result = data;
+//     },
+//     error: function (event) {
+//       layer.msg('获取调用信息失败',{icon:2});
+//     }
+//   });
+//   return result;
+// }
 
 function getRequestWithTraceIDByTimeRange() {
   let result;
@@ -306,7 +306,12 @@ function initLogVis(traceId) {
   let logs = traceLog.logs;
   for (let i = 0;i < logs.length;i++) {
     html += '<tr>'+
-      ' <td class = "col-sm-1 col-md-1">'+ logs[i].timestamp +'</td>'+
+      ' <td class = "col-sm-1 col-md-1">'+
+      '   <button class="btn btn-default nodeBtn">' +
+      logs[i].serviceInfo.node.name +
+      '     <div class = "nodeInfo">'+ JSON.stringify(logs[i].serviceInfo.node) +'</div>'+
+      '   </button>'+
+      '</td>'+
       ' <td class = "col-sm-1 col-md-1">' + logs[i].serviceInfo.serviceName +'</td>'+
       ' <td class = "col-sm-2 col-md-2">'+
       '   <button class="btn btn-default serviceInstanceBtn">' +
@@ -314,14 +319,10 @@ function initLogVis(traceId) {
       '     <div class = "serviceInstanceInfo">'+ JSON.stringify(logs[i].serviceInfo.instanceInfo) +'</div>'+
       '   </button>'+
       ' </td>' +
-      ' <td class = "col-sm-1 col-md-1">'+
-      '   <button class="btn btn-default nodeBtn">' +
-      logs[i].serviceInfo.node.name +
-      '     <div class = "nodeInfo">'+ JSON.stringify(logs[i].serviceInfo.node) +'</div>'+
-      '   </button>'+
-      '</td>'+
+      ' <td class = "col-sm-1 col-md-1">'+ logs[i].uri +'</td>'+
       ' <td class = "col-sm-1 col-md-1">'+ logs[i].logType +'</td>'+
-      ' <td class = "col-sm-6 col-md-6">'+ logs[i].logInfo +'</td>'+
+      ' <td class = "col-sm-1 col-md-1" style="text-align: left">'+ logs[i].timestamp +'</td>'+
+      ' <td class = "col-sm-5 col-md-5" style="text-align: left">'+ logs[i].logInfo +'</td>'+
       '</tr>';
   }
 
@@ -336,9 +337,7 @@ function initLogVis(traceId) {
     }
     let thHeight = thead.children('th').eq(0).css('height');
     $('#logTable').css('padding-top', thHeight+'');
-    // $('#logTable').parent().width($('#logTable').parent().parent().width());
-    // $('#logTable').width($('#logTable').parent().parent().width());
-    // $('#logHead').width($('#logHead').parent().parent().width());
+    optTableStyle();
     $('#logTable').find('.nodeBtn').each(function () {
       let node = JSON.parse($(this).find('.nodeInfo').html());
       $(this).click(function () {
@@ -352,6 +351,37 @@ function initLogVis(traceId) {
       });
     });
   }
+}
+
+function optTableStyle() {
+  let content = [];
+  let cell = [];
+  $('#logTable').children('tr').each(function (i) {
+    $(this).children('td').each(function (j) {
+      let temp = $.trim($(this).text());
+      if(content[j] === undefined || content[j] == null || content[j] === '' || i <= 0){
+        content[j] = temp;
+        $(this).attr('rowSpan','1');
+        cell[j] = $(this);
+      }
+      else {
+        if(temp === content[j]){
+          $(this).hide();
+          let temp2 = Number(cell[j].attr('rowSpan')) + 1;
+          cell[j].attr('rowSpan', temp2+'');
+        }
+        else{
+          content[j] = temp;
+          $(this).attr('rowSpan', '1');
+          cell[j] = $(this);
+          for(let k=j+1;k<6;k++) {
+            content[k] = '';
+          }
+        }
+      }
+    });
+
+  });
 }
 
 function showNodeInfo(node) {
@@ -538,6 +568,7 @@ function getInstanceInfo(data, serviceName){
         logInfo.time = log.timestamp;
         logInfo.logType = log.logType;
         logInfo.requestType = log.requestType;
+        logInfo.uri = log.uri;
         logInfo.message = log.logInfo;
         logInfos.push(logInfo);
 
@@ -575,6 +606,7 @@ function constructLogArea(instanceName, instanceInfoMap){
     logHtml += '<tr>';
     logHtml += '<td>'+logInfo.time+'</td>';
     logHtml += '<td>'+logInfo.logType+'</td>';
+    logHtml += '<td>'+logInfo.uri+'</td>';
     logHtml += '<td>'+logInfo.message+'</td>';
     logHtml += '</tr>';
   }
@@ -714,6 +746,7 @@ function loadRightInfo(instanceNameLocal, instanceInfoMap){
   html +=                                        '<tr>';
   html +=                                           '<th>Time</th>';
   html +=                                           '<th>logType</th>';
+  html +=                                           '<th>Uri</th>';
   html +=                                           '<th>logInfo</th>';
   html +=                                        '</tr>';
   html +=                                        constructLogArea(instanceNameLocal, instanceInfoMap);
