@@ -61,9 +61,12 @@ function loadTree(tData) {
     var li = $('<li>').appendTo(ul);
     var node = $('<a>').appendTo(li);
     var icon = $('<i>').css('margin-right', '5').appendTo(node);
-    $('<span>').addClass('title').html(tData[i].title).appendTo(node);
-    $('<div></div>').addClass('field').html(tData[i].field).css('display','none').appendTo(node)
-    if (tData[i].field === 'trace') {
+    let title = $('<span>').addClass('title').html(tData[i].title).appendTo(node);
+    $('<div></div>').addClass('field').html(tData[i].field).css('display','none').appendTo(node);
+    if(tData[i].field === 'traceType'){
+      title.attr('data-toggle', 'tooltip').attr('data-placement', 'right').attr('title', 'Trace Count:' + tData[i].children.length);
+    }
+    else if (tData[i].field === 'trace') {
       $('<div></div>').addClass('serviceList').html(JSON.stringify(tData[i].children)).css('display', 'none').appendTo(node);
     }
       // 处理有子节点的
@@ -108,7 +111,9 @@ function nodeClick(box) {
       // 判断该节点是否开启
       if ($.trim($(this).find('.open').val()) === 'true') {
           // 已开启，则关闭节点
-        $(this).next().slideUp(500);
+        $(this).next().slideUp(500,function () {
+          $(this).find('[data-toggle="tooltip"]').tooltip('hide');
+        });
         $(this).find('.open').val('false');
         $(this).find('.status').removeClass('fa-minus-square-o').addClass('fa-plus-square-o');
       }
@@ -125,18 +130,47 @@ function nodeClick(box) {
         $(this).find('.status').removeClass('fa-plus-square-o').addClass('fa-minus-square-o');
         // 开启节点下的节点
 
-        $(this).next().slideDown(500);
+        $(this).next().slideDown(500,function () {
+          $(this).find('[data-toggle="tooltip"]').tooltip('show');
+        });
+      }
+      if ($.trim($(this).find('.field').html()) === 'root'){
+        let t = $.trim($(this).find('.title').html());
+        $('#trace-tree').find('.tree-node').each(function() {
+          if ($.trim($(this).find('.field').html()) === 'root'){
+            if ($.trim($(this).find('.title').html()) !== t) {
+              $(this).css({'background-color': '', 'color': ''});
+              $(this).next().slideUp(500,function () {
+                $(this).find('[data-toggle="tooltip"]').tooltip('hide');
+              });
+              $(this).find('.open').val('false');
+              $(this).find('.status').removeClass('fa-minus-square-o').addClass('fa-plus-square-o');
+            }
+          }
+          else if ($.trim($(this).find('.field').html()) === 'trace'){
+            $(this).css({'background-color': '', 'color' : ''});
+            $(this).next().slideUp(500,function () {
+              $(this).find('[data-toggle="tooltip"]').tooltip('show');
+            });
+            $(this).find('.open').val('false');
+            $(this).find('.status').removeClass('fa-minus-square-o').addClass('fa-plus-square-o');
+          }
+        });
+
+
       }
       // 判断是不是调用链
       if ($.trim($(this).find('.field').html()) === 'trace') {
         let t = $.trim($(this).find('.title').html());
         currentTraceId = t;
-        globeTraceLogData = getLogByTraceID(currentTraceId);
-        $(this).parent().parent('ul').parent().parent().find('.tree-node').each(function() {
+        globeTraceLogData = getLogByTraceID(currentTraceId,0);
+        $(this).parent().parent('ul').parent().find('.tree-node').each(function() {
           if ($.trim($(this).find('.field').html()) === 'trace') {
             if ($.trim($(this).find('.title').html()) !== t) {
               $(this).css({'background-color': '', 'color' : ''});
-              $(this).next().css('display', 'none');
+              $(this).next().slideUp(500,function () {
+                $(this).find('[data-toggle="tooltip"]').tooltip('show');
+              });
               $(this).find('.open').val('false');
               $(this).find('.status').removeClass('fa-minus-square-o').addClass('fa-plus-square-o');
             }
@@ -153,7 +187,7 @@ function nodeClick(box) {
         initServiceClick(allServiceName);
         if ($.trim($(this).find('.open').val()) === 'true') {
           highlightServices(allServiceName);
-          initLogVis($.trim($(this).find('.title').html()));
+          initLogVis(currentTraceId,1);
         }
       }
       else if ($.trim($(this).find('.field').html()) === 'service') {
@@ -174,31 +208,44 @@ function praseRequestWithTraceID(requestWithTraceID) {
     rootNode.title = requestTypeList[i].requestType;
     rootNode.field = 'root';
     rootNode.candidate = true;
-    var traceInfoList = requestTypeList[i].traceInfoList;
-    if (traceInfoList.length > 0) {
+    var traceTypeList = requestTypeList[i].traceTypeList;
+    if(traceTypeList.length > 0){
       rootNode.open = false;
-      var allTrace = [];
-      for (var j = 0; j < traceInfoList.length; j++) {
-        var secondNode = {};
-        secondNode.title = traceInfoList[j].traceId;
-        secondNode.field = 'trace';
-        secondNode.candidate = true;
-        var serviceList = traceInfoList[j].serviceName;
-        if (serviceList.length > 0) {
-          secondNode.open = false;
-          var allService = [];
-          for (var k = 0; k < serviceList.length; k++) {
-            var leafNode = {};
-            leafNode.title = serviceList[k];
-            leafNode.field = 'service';
-            leafNode.candidate = true;
-            allService[k] = leafNode;
+      var allType = [];
+      for(var l = 0;l < traceTypeList.length;l++){
+        var addNode =  {};
+        addNode.title = traceTypeList[l].typeName;
+        addNode.field = 'traceType';
+        addNode.candidate = true;
+        var traceInfoList = traceTypeList[l].traceInfoList;
+        if (traceInfoList.length > 0) {
+          addNode.open = false;
+          var allTrace = [];
+          for (var j = 0; j < traceInfoList.length; j++) {
+            var secondNode = {};
+            secondNode.title = traceInfoList[j].traceId;
+            secondNode.field = 'trace';
+            secondNode.candidate = true;
+            var serviceList = traceInfoList[j].serviceList;
+            if (serviceList.length > 0) {
+              secondNode.open = false;
+              var allService = [];
+              for (var k = 0; k < serviceList.length; k++) {
+                var leafNode = {};
+                leafNode.title = serviceList[k];
+                leafNode.field = 'service';
+                leafNode.candidate = true;
+                allService[k] = leafNode;
+              }
+              secondNode.children = allService;
+            }
+            allTrace[j] = secondNode;
           }
-          secondNode.children = allService;
+          addNode.children = allTrace;
         }
-        allTrace[j] = secondNode;
+        allType[l] = addNode;
       }
-      rootNode.children = allTrace;
+      rootNode.children = allType;
     }
     data[i] = rootNode;
   }
@@ -281,11 +328,11 @@ function getRequestWithTraceIDByTimeRange() {
   });
 }
 
-function getLogByTraceID(traceId) {
+function getLogByTraceID(traceId,type) {
   var result = '';
   $.ajax({
     async: false,
-    url: 'http://10.141.212.24:16319/getLogByTraceId/'+traceId,
+    url: 'http://10.141.212.24:16319/getLogByTraceId/'+traceId+"/"+type,
     type: 'get',
     dataType: 'json',
     success: function (data) {
@@ -299,9 +346,9 @@ function getLogByTraceID(traceId) {
 }
 
 
-function initLogVis(traceId) {
+function initLogVis(traceId,type) {
   let html = '';
-  let traceLog = getLogByTraceID(traceId);
+  let traceLog = getLogByTraceID(traceId,0);
   globeTraceLogData = traceLog;
   let logs = traceLog.logs;
   for (let i = 0;i < logs.length;i++) {
