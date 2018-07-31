@@ -39,6 +39,10 @@
   word-wrap:break-all;
 }
 
+#logVis thead{
+  cursor: s-resize;
+}
+
 #logVis .table tbody tr td{
   text-align: center;
   vertical-align: middle;
@@ -51,6 +55,10 @@
 
 #logVis .btn{
   border: none;
+}
+
+#logVis .handMouse {
+  cursor: pointer;
 }
 
 /*#logVis table tbody {*/
@@ -97,4 +105,12 @@
   width: 100%;
   height: 100%;
   overflow: hidden;
+}
+
+
+#logEntrance {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  display: none;
 }

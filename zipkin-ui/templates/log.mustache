@@ -35,9 +35,9 @@
         <th>Node</th>
         <th>Service</th>
         <th>Instance</th>
-        <th id="sortByURI">Uri<i class="fa fa-sort-amount-asc" aria-hidden="true"></i></th>
+        <th id="sortByURI" class = "handMouse">Uri <i class="fa fa-sort-amount-asc" aria-hidden="true"></i></th>
         <th>LogType</th>
-        <th id="sortByTime">Time<i class="fa fa-sort-amount-asc" aria-hidden="true"></i></th>
+        <th id="sortByTime" class = "handMouse">Time <i class="fa fa-sort-amount-asc" aria-hidden="true"></i></th>
         <th>LogInfo</th>
       </tr>
     </thead>
@@ -46,8 +46,11 @@
   </table>
 </div>
 
-
-<!--&lt;!&ndash; 新添加树形选择框入口 &ndash;&gt;-->
-<!--<div class="select-tree-entrance" id="select-tree-area">-->
-  <!--<button class="btn btn-default" id="select-tree">神奇的入口</button>-->
-<!--</div>-->
+<div class="container" id="logEntrance">
+  <ul class="nav nav-pills" role="tablist">
+    <li><span class="bg-danger">Error: <strong id = "errorCount">0</strong></span></li>
+    <li><span class="bg-warning">Exception: <strong id = "exceptionCount">0</strong></span></li>
+    <li><span class="bg-success">Normal: <strong id = "normalCount">0</strong></span></li>
+    <li class="pull-right"><button class="btn btn-default btn-xs" id="controlLogVis"></button></li>
+  </ul>
+</div>

@@ -14,15 +14,16 @@ import '../../libs/layer/layer';
 
 const LogPageComponent = component(function LogPage() {
   this.after('initialize', function() {
-    const loading = layer.load(2);
+    const loading = layer.load(2,{
+      shade: 0.3,
+      scrollbar: false,
+      zIndex: 20000000
+    });
     try {
       window.document.title = 'Zipkin - Log';
       this.trigger(document, 'navigate', {route: 'zipkin/log'});
 
       this.$node.html(logTemplate());
-
-      $('#logVis').css('height', window.screen.height * 0.3 + '');
-
       const {startTs, endTs} = queryString.parse(location.search);
       $('#endTs').val(endTs || moment().valueOf());
       // When #1185 is complete, the only visible granularity is day
@@ -35,8 +36,8 @@ const LogPageComponent = component(function LogPage() {
       GoToLogUI.attachTo('#dependency-query-form');
       SelectTree.attachTo('#select-tree-area');
       i18nInit('dep');
-      getRequestWithTraceIDByTimeRange();
-      layer.close(loading);
+      $(document.body).css('overflow-y','hidden');
+      getRequestWithTraceIDByTimeRange(loading);
     } catch (e) {
       layer.close(loading);
     }
@@ -46,13 +47,48 @@ const LogPageComponent = component(function LogPage() {
 var currentTraceId = '';
 var serviceInstanceNames = new Array();
 var globeTraceLogData = {};
+var currentSort = 1;
+
 function showSelectTree(requestWithTraceID) {
   let html = '<div id="trace-tree">';
   var data = praseRequestWithTraceID(requestWithTraceID);
   html += loadTree(data).html();
   html += '</div>';
   $('#selectTree').html(html);
+  $('#trace-tree').children('li').each(function () {
+    $(this).children('a').children('span').tooltip();
+  });
   nodeClick($('#trace-tree'));
+  initSortClick();
+}
+
+function initSortClick() {
+  $('#sortByURI').bind('click',function () {
+    if(currentSort == 0){
+      $(this).children('i').hide();
+      $('#sortByTime').children('i').show();
+      currentSort = 1;
+      const loading = layer.load(2,{
+        shade: 0.3,
+        scrollbar: false,
+        zIndex: 20000000
+      });
+      getLogByTraceID(currentTraceId,currentSort,loading);
+    }
+  });
+  $('#sortByTime').bind('click',function () {
+    if(currentSort === 1){
+      $(this).children('i').hide();
+      $('#sortByURI').children('i').show();
+      currentSort = 0;
+      const loading = layer.load(2,{
+        shade: 0.3,
+        scrollbar: false,
+        zIndex: 20000000
+      });
+      getLogByTraceID(currentTraceId,currentSort,loading);
+    }
+  });
 }
 
 function loadTree(tData) {
@@ -63,10 +99,13 @@ function loadTree(tData) {
     var icon = $('<i>').css('margin-right', '5').appendTo(node);
     let title = $('<span>').addClass('title').html(tData[i].title).appendTo(node);
     $('<div></div>').addClass('field').html(tData[i].field).css('display','none').appendTo(node);
-    if(tData[i].field === 'traceType'){
-      title.attr('data-toggle', 'tooltip').attr('data-placement', 'right').attr('title', 'Trace Count:' + tData[i].children.length);
+    if(tData[i].field !== 'service'){
+      title.attr('data-toggle', 'tooltip').attr('data-placement', 'right').attr('title', 'Error:' + tData[i].errorCount + ' Exception:' + tData[i].exceptionCount +" Normal:"+tData[i].normalCount);
+      let shade = (tData[i].errorCount /(tData[i].exceptionCount + tData[i].errorCount + tData[i].normalCount)) / 0.5;
+      node.css('background-color','rgba(242,222,222,'+ shade +')');
+      $('<div></div>').addClass('shade').html(shade).css('display','none').appendTo(node);
     }
-    else if (tData[i].field === 'trace') {
+    if (tData[i].field === 'trace') {
       $('<div></div>').addClass('serviceList').html(JSON.stringify(tData[i].children)).css('display', 'none').appendTo(node);
     }
       // 处理有子节点的
@@ -106,96 +145,101 @@ function loadTree(tData) {
 
 function nodeClick(box) {
   box.find('.tree-node').click(function() {
-    layer.load(2);
-    try {
-      // 判断该节点是否开启
-      if ($.trim($(this).find('.open').val()) === 'true') {
-          // 已开启，则关闭节点
-        $(this).next().slideUp(500,function () {
-          $(this).find('[data-toggle="tooltip"]').tooltip('hide');
-        });
+    // 判断该节点是否开启
+    if ($.trim($(this).find('.open').val()) === 'true') {
+      // 已开启，则关闭节点
+      $(this).next().slideUp(500,function () {
+        $(this).children('[data-toggle="tooltip"]').tooltip('hide');
+      });
+      $(this).find('.open').val('false');
+      $(this).find('.status').removeClass('fa-minus-square-o').addClass('fa-plus-square-o');
+    }
+    else {
+      // 开启前关闭节点下的所有节点
+      $(this).next().find('.tree-node').each(function() {
+        $(this).next().css('display', 'none');
         $(this).find('.open').val('false');
         $(this).find('.status').removeClass('fa-minus-square-o').addClass('fa-plus-square-o');
-      }
-      else {
-        // 开启前关闭节点下的所有节点
-        $(this).next().find('.tree-node').each(function() {
-          $(this).next().css('display', 'none');
-          $(this).find('.open').val('false');
-          $(this).find('.status').removeClass('fa-minus-square-o').addClass('fa-plus-square-o');
-        });
+      });
 
-        // 已关闭，则开启节点
-        $(this).find('.open').val('true');
-        $(this).find('.status').removeClass('fa-plus-square-o').addClass('fa-minus-square-o');
-        // 开启节点下的节点
+      // 已关闭，则开启节点
+      $(this).find('.open').val('true');
+      $(this).find('.status').removeClass('fa-plus-square-o').addClass('fa-minus-square-o');
+      // 开启节点下的节点
 
-        $(this).next().slideDown(500,function () {
-          $(this).find('[data-toggle="tooltip"]').tooltip('show');
+      $(this).next().slideDown(500,function () {
+        $(this).children('li').each(function () {
+          $(this).children('a').children('span').tooltip();
         });
-      }
-      if ($.trim($(this).find('.field').html()) === 'root'){
-        let t = $.trim($(this).find('.title').html());
-        $('#trace-tree').find('.tree-node').each(function() {
-          if ($.trim($(this).find('.field').html()) === 'root'){
-            if ($.trim($(this).find('.title').html()) !== t) {
-              $(this).css({'background-color': '', 'color': ''});
-              $(this).next().slideUp(500,function () {
-                $(this).find('[data-toggle="tooltip"]').tooltip('hide');
-              });
-              $(this).find('.open').val('false');
-              $(this).find('.status').removeClass('fa-minus-square-o').addClass('fa-plus-square-o');
-            }
-          }
-          else if ($.trim($(this).find('.field').html()) === 'trace'){
-            $(this).css({'background-color': '', 'color' : ''});
+      });
+    }
+    if ($.trim($(this).find('.field').html()) === 'root'){
+      let t = $.trim($(this).find('.title').html());
+      $('#trace-tree').find('.tree-node').each(function() {
+        if ($.trim($(this).find('.field').html()) === 'root'){
+          if ($.trim($(this).find('.title').html()) !== t) {
+            $(this).css('color', '');
+            $(this).css('background-color','rgba(242,222,222,'+ $.trim($(this).find('.shade').html()) +')');
             $(this).next().slideUp(500,function () {
-              $(this).find('[data-toggle="tooltip"]').tooltip('show');
+              $(this).children('[data-toggle="tooltip"]').tooltip('hide');
             });
             $(this).find('.open').val('false');
             $(this).find('.status').removeClass('fa-minus-square-o').addClass('fa-plus-square-o');
           }
-        });
+        }
+        else if ($.trim($(this).find('.field').html()) === 'trace'){
+          $(this).css('color' , '');
+          $(this).css('background-color','rgba(242,222,222,'+ $.trim($(this).find('.shade').html()) +')');
+          $(this).next().slideUp(500,function () {
+            $(this).children('[data-toggle="tooltip"]').tooltip('hide');
+          });
+          $(this).find('.open').val('false');
+          $(this).find('.status').removeClass('fa-minus-square-o').addClass('fa-plus-square-o');
+        }
+      });
 
 
-      }
-      // 判断是不是调用链
-      if ($.trim($(this).find('.field').html()) === 'trace') {
-        let t = $.trim($(this).find('.title').html());
-        currentTraceId = t;
-        globeTraceLogData = getLogByTraceID(currentTraceId,0);
-        $(this).parent().parent('ul').parent().find('.tree-node').each(function() {
-          if ($.trim($(this).find('.field').html()) === 'trace') {
-            if ($.trim($(this).find('.title').html()) !== t) {
-              $(this).css({'background-color': '', 'color' : ''});
-              $(this).next().slideUp(500,function () {
-                $(this).find('[data-toggle="tooltip"]').tooltip('show');
-              });
-              $(this).find('.open').val('false');
-              $(this).find('.status').removeClass('fa-minus-square-o').addClass('fa-plus-square-o');
-            }
-            else {
-              $(this).css({'background-color': '#777777', 'color': '#FFFFFF'});
-            }
+    }
+    // 判断是不是调用链
+    if ($.trim($(this).find('.field').html()) === 'trace') {
+      let t = $.trim($(this).find('.title').html());
+      currentTraceId = t;
+      $(this).parent().parent('ul').parent().find('.tree-node').each(function() {
+        if ($.trim($(this).find('.field').html()) === 'trace') {
+          if ($.trim($(this).find('.title').html()) !== t) {
+            $(this).css('color' , '');
+            $(this).css('background-color','rgba(242,222,222,'+ $.trim($(this).find('.shade').html()) +')');
+            $(this).next().slideUp(500,function () {
+              $(this).children('[data-toggle="tooltip"]').tooltip('hide');
+            });
+            $(this).find('.open').val('false');
+            $(this).find('.status').removeClass('fa-minus-square-o').addClass('fa-plus-square-o');
           }
+          else {
+            $(this).css({'background-color': '#777777', 'color': '#FFFFFF'});
+          }
+        }
+      });
+      const allService = JSON.parse($.trim($(this).find('.serviceList').html()));
+      const allServiceName = [];
+      for (let i = 0; i < allService.length; i++) {
+        allServiceName[i] = allService[i].title;
+      }
+      initServiceClick(allServiceName);
+      if ($.trim($(this).find('.open').val()) === 'true') {
+        highlightServices(allServiceName);
+        $('#sortByURI').children('i').hide();
+        $('#sortByTime').children('i').show();
+        const loading = layer.load(2,{
+          shade: 0.3,
+          scrollbar: false,
+          zIndex: 20000000
         });
-        const allService = JSON.parse($.trim($(this).find('.serviceList').html()));
-        const allServiceName = [];
-        for (let i = 0; i < allService.length; i++) {
-          allServiceName[i] = allService[i].title;
-        }
-        initServiceClick(allServiceName);
-        if ($.trim($(this).find('.open').val()) === 'true') {
-          highlightServices(allServiceName);
-          initLogVis(currentTraceId,1);
-        }
+        getLogByTraceID(currentTraceId,1,loading);
       }
-      else if ($.trim($(this).find('.field').html()) === 'service') {
-        showServiceInfo($.trim($(this).find('.title').html()));
-      }
-      layer.closeAll('loading');
-    }catch (e) {
-      layer.closeAll('loading');
+    }
+    else if ($.trim($(this).find('.field').html()) === 'service') {
+      showServiceInfo($.trim($(this).find('.title').html()));
     }
   });
 }
@@ -206,6 +250,9 @@ function praseRequestWithTraceID(requestWithTraceID) {
   for (var i = 0; i < requestTypeList.length; i++) {
     var rootNode = {};
     rootNode.title = requestTypeList[i].requestType;
+    rootNode.errorCount = requestTypeList[i].errorCount;
+    rootNode.exceptionCount = requestTypeList[i].exceptionCount;
+    rootNode.normalCount = requestTypeList[i].normalCount;
     rootNode.field = 'root';
     rootNode.candidate = true;
     var traceTypeList = requestTypeList[i].traceTypeList;
@@ -215,6 +262,9 @@ function praseRequestWithTraceID(requestWithTraceID) {
       for(var l = 0;l < traceTypeList.length;l++){
         var addNode =  {};
         addNode.title = traceTypeList[l].typeName;
+        addNode.errorCount = traceTypeList[l].errorCount;
+        addNode.exceptionCount = traceTypeList[l].exceptionCount;
+        addNode.normalCount = traceTypeList[l].normalCount;
         addNode.field = 'traceType';
         addNode.candidate = true;
         var traceInfoList = traceTypeList[l].traceInfoList;
@@ -224,6 +274,9 @@ function praseRequestWithTraceID(requestWithTraceID) {
           for (var j = 0; j < traceInfoList.length; j++) {
             var secondNode = {};
             secondNode.title = traceInfoList[j].traceId;
+            secondNode.errorCount = traceInfoList[j].errorCount;
+            secondNode.exceptionCount = traceInfoList[j].exceptionCount;
+            secondNode.normalCount = traceInfoList[j].normalCount;
             secondNode.field = 'trace';
             secondNode.candidate = true;
             var serviceList = traceInfoList[j].serviceList;
@@ -298,7 +351,7 @@ function initialServiceColor() {
 //   return result;
 // }
 
-function getRequestWithTraceIDByTimeRange() {
+function getRequestWithTraceIDByTimeRange(loading) {
   let result;
   let time = {};
   let parm = window.location.search;
@@ -309,7 +362,7 @@ function getRequestWithTraceIDByTimeRange() {
   }
   else{
     time.endTime = (new Date()).getTime();
-    time.lookback = 86400000 ;
+    time.lookback = 86400000;
   }
   $.ajax({
     async: true,
@@ -321,6 +374,7 @@ function getRequestWithTraceIDByTimeRange() {
     success: function (data) {
       result = data;
       showSelectTree(result);
+      layer.close(loading);
     },
     error: function (event) {
       layer.msg('获取调用信息失败',{icon:2});
@@ -328,27 +382,27 @@ function getRequestWithTraceIDByTimeRange() {
   });
 }
 
-function getLogByTraceID(traceId,type) {
+function getLogByTraceID(traceId,type,loading) {
   var result = '';
   $.ajax({
-    async: false,
+    async: true,
     url: 'http://10.141.212.24:16319/getLogByTraceId/'+traceId+"/"+type,
     type: 'get',
     dataType: 'json',
     success: function (data) {
       result = data;
+      initLogVis(result,loading);
     },
     error: function (event) {
       layer.msg('获取调用链日志失败',{icon:2});
     }
   });
-  return result;
+  globeTraceLogData = result;
 }
 
 
-function initLogVis(traceId,type) {
+function initLogVis(traceLog,loading) {
   let html = '';
-  let traceLog = getLogByTraceID(traceId,0);
   globeTraceLogData = traceLog;
   let logs = traceLog.logs;
   for (let i = 0;i < logs.length;i++) {
@@ -369,21 +423,32 @@ function initLogVis(traceId,type) {
       ' <td class = "col-sm-1 col-md-1">'+ logs[i].uri +'</td>'+
       ' <td class = "col-sm-1 col-md-1">'+ logs[i].logType +'</td>'+
       ' <td class = "col-sm-1 col-md-1" style="text-align: left">'+ logs[i].timestamp +'</td>'+
-      ' <td class = "col-sm-5 col-md-5" style="text-align: left">'+ logs[i].logInfo +'</td>'+
+      ' <td class = "col-sm-5 col-md-5 ';
+    if(logs[i].isError == 1)
+      html += 'bg-danger';
+    else if (logs[i].isError == 2)
+      html += 'bg-warning';
+      html+= '" style="text-align: left">'+ logs[i].logInfo +'</td>'+
       '</tr>';
+      layer.close(loading);
   }
 
   if(logs.length > 0) {
+    $('#logVis').css('height', window.screen.height * 0.3 + 'px');
+    $('#errorCount').html(traceLog.errorCount);
+    $('#exceptionCount').html(traceLog.exceptionCount);
+    $('#normalCount').html(traceLog.normalCount);
+
+    $('#logEntrance').css('bottom', window.screen.height * 0.3 + 'px');
+
     $('#logTable').html(html);
-    $('#logVis').css('display', 'block');
-    let tbody = $('#logTable').children('tr').eq(0);
-    let thead = $('#logHead').children('tr').eq(0);
-    for (let i = 0; i < tbody.children('td').length; i++) {
-      let thWidth = tbody.children('td').eq(i).css('width');
-      thead.children('th').eq(i).css('width', thWidth+'');
-    }
-    let thHeight = thead.children('th').eq(0).css('height');
-    $('#logTable').css('padding-top', thHeight+'');
+
+    $('#logEntrance').show();
+    $('#logVis').show();
+
+    listenMove($('#logVis'),$('#logEntrance'));
+    initControlLogVis();
+    keepTraceOn();
     optTableStyle();
     $('#logTable').find('.nodeBtn').each(function () {
       let node = JSON.parse($(this).find('.nodeInfo').html());
@@ -397,6 +462,70 @@ function initLogVis(traceId,type) {
         showServiceInstanceInfo(serviceInstance);
       });
     });
+  }
+}
+
+function keepTraceOn() {
+  let tbody = $('#logTable').children('tr').eq(0);
+  let thead = $('#logHead').children('tr').eq(0);
+  for (let i = 0; i < tbody.children('td').length; i++) {
+    let thWidth = tbody.children('td').eq(i).css('width');
+    thead.children('th').eq(i).css('width', thWidth+'');
+  }
+  let thHeight = thead.children('th').eq(0).css('height');
+  $('#logTable').css('padding-top', thHeight+'');
+}
+
+function initControlLogVis() {
+  var showLogVis = false;
+  $('#controlLogVis').html('隐藏调用链日志');
+  $('#controlLogVis').bind('click',function () {
+    if(showLogVis){
+      $('#logVis').css('height', window.screen.height * 0.3 + 'px');
+      $('#logEntrance').css('bottom', window.screen.height * 0.3 + 'px');
+      $(this).html('隐藏调用链日志');
+      showLogVis = false;
+    }
+    else{
+      $('#logVis').css('height', '0');
+      $('#logEntrance').css('bottom', '0');
+      $(this).html('显示调用链日志');
+      showLogVis = true;
+    }
+
+
+  })
+}
+
+function listenMove(el,bn) {
+  var y = 0;
+  $(el).mousedown(function (e) {
+    y = e.clientY + $('#logVis').height();
+    el.setCapture ? (
+      el.setCapture(),
+        el.onmousemove = function (ev)
+        {
+          mouseMove(ev || event);
+        },
+        el.onmouseup = mouseUp
+    ) : (
+      $(document).bind('mousemove', mouseMove).bind('mouseup', mouseUp)
+    );
+    e.preventDefault();
+  });
+  function mouseMove(e){
+    el.css('height', y - e.clientY + 'px');
+    bn.css('bottom', y - e.clientY + 'px');
+    keepTraceOn();
+  }
+  function mouseUp()
+  {
+    el.releaseCapture ? (
+      el.releaseCapture(),
+        el.onmousemove = el.onmouseup = null
+    ) : (
+      $(document).unbind('mousemove', mouseMove).unbind('mouseup', mouseUp)
+    );
   }
 }
 
