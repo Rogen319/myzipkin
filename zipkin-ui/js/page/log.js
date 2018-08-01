@@ -357,11 +357,11 @@ function getRequestWithTraceIDByTimeRange(loading) {
   let parm = window.location.search;
   if (parm.length > 1){
     parm = parm.substring(1,parm.length);
-    time.endTime = parseInt(parm.split('&')[0].split('=')[1]);
-    time.lookback = time.endTime - parm.split('&')[1].split('=')[1];
+    time.endTime = Number(parm.split('&')[0].split('=')[1]) ;
+    time.lookback = time.endTime - Number(parm.split('&')[1].split('=')[1]) ;
   }
   else{
-    time.endTime = (new Date()).getTime();
+    time.endTime = (new Date()).getTime() + 28800000;
     time.lookback = 86400000;
   }
   $.ajax({

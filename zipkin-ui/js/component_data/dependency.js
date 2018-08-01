@@ -7,6 +7,7 @@ export default component(function dependency() {
   let dependencies = {};
 
   this.getDependency = function(endTs, lookback) {
+    endTs = (Number(endTs) + 28800000).toString();
     let url = `api/v2/dependencies?endTs=${endTs}`;
     if (lookback) {
       url += `&lookback=${lookback}`;
