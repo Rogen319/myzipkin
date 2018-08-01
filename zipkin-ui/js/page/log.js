@@ -119,7 +119,7 @@ function loadTree(tData) {
       // else if (tData[i].field === 'trace') {
       //   ic = $('<i>').addClass('fa fa-link').attr('aria-hidden','true');
       // }
-      // icon.after(ic).addClass('status');
+      icon.addClass('status');
       node.addClass('tree-node');
 
         // 添加标记节点是否打开
@@ -197,8 +197,6 @@ function nodeClick(box) {
           $(this).find('.status').removeClass('fa-minus-square-o').addClass('fa-plus-square-o');
         }
       });
-
-
     }
     // 判断是不是调用链
     if ($.trim($(this).find('.field').html()) === 'trace') {
