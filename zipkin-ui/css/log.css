@@ -114,3 +114,32 @@
   bottom: 0;
   display: none;
 }
+
+.selected-trace {
+  width: 11%;
+  position: absolute;
+  right: 0;
+  top: 0;
+  font-size: 10px;
+}
+
+.selected-trace li {
+  padding: 5px 5px;
+}
+
+.selected-trace .close {
+  margin-top: -2.5px;
+}
+
+
+.color-box {
+  width: 10px;
+  height: 10px;
+  border: #444444 1px;
+  margin-top: 3px;
+}
+
+
+#selectedTrace {
+  cursor: pointer;
+}
