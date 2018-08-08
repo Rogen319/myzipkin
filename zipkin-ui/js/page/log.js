@@ -970,7 +970,7 @@ function initialInfo(el,data,chosen) {
   let instanceWithLogList = data.instanceWithLogList;
   if(instanceWithLogList.length <= 0){
     let html = "<h3>不存在日志信息</h3>";
-    el[1].html("")
+    el[1].html(html);
     return;
   }
   let instanceName = [];

@@ -171,6 +171,6 @@
 .layui-layer-content {
   width: 100%;
 }
-/*.layui-layer-tabmain .layui-layer-tabli {*/
-  /*display: block!important;*/
-/*}*/
+.layui-layer-tabmain .layui-layer-tabli {
+  display: block;
+}
