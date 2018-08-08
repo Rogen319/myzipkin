@@ -39,6 +39,11 @@
   word-wrap:break-all;
 }
 
+.keepIn {
+  word-break:break-all;
+  word-wrap:break-all;
+}
+
 #logVis thead{
   cursor: s-resize;
 }
@@ -116,7 +121,7 @@
 }
 
 .selected-trace {
-  width: 11%;
+  width: 150px;
   position: absolute;
   right: 0;
   top: 0;
@@ -143,3 +148,29 @@
 #selectedTrace {
   cursor: pointer;
 }
+
+.serviceInfoTable .table tbody tr th{
+  vertical-align: middle;
+}
+.serviceInfoTable .table  tbody tr td{
+  vertical-align: middle;
+}
+.serviceInfoTable .table  tbody tr td{
+  border: white 0px solid;
+}
+.serviceInfoTable .table  tbody tr th{
+  border: white 0px solid;
+}
+
+.deOffset {
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding-top: 10px;
+}
+
+.layui-layer-content {
+  width: 100%;
+}
+/*.layui-layer-tabmain .layui-layer-tabli {*/
+  /*display: block!important;*/
+/*}*/
