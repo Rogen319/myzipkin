@@ -174,3 +174,32 @@
 .layui-layer-tabmain .layui-layer-tabli {
   display: block;
 }
+#selectTree {
+  width: 290px;
+  height: 450px;
+  top: 150px;
+  left: 6%;
+  position: fixed;
+  overflow-x: hidden;
+  overflow-y: auto;
+  background-color: white;
+  display: none;
+}
+
+.diybtn {
+  width: 20px;
+  height: 100px;
+  padding: 1px 2px!important;
+  font-size: 9px!important;
+  line-height: 1.2!important;
+  white-space:normal!important;
+  word-wrap: break-word!important;
+  word-break: break-all!important;
+}
+
+#controllTree {
+  position: fixed;
+  margin-left: 275px;
+  top: 150px;
+  display: none;
+}

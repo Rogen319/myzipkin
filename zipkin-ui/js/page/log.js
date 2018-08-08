@@ -67,13 +67,32 @@ function showSelectTree(requestWithTraceID) {
   html += loadTree(data).html();
   html += '</div>';
   $('#selectTree').html(html);
+  $('#controllTree').show();
   $('#trace-tree').children('li').each(function () {
     $(this).children('a').children('span').tooltip();
   });
   nodeClick($('#trace-tree'));
   initSortClick();
+  initControlTree();
 }
-
+function initControlTree(){
+  var showSelectTree = true;
+  $('#selectTree').show();
+  $('#controllTreeBtn').bind('click',function () {
+    if(showSelectTree){
+      showSelectTree = false;
+      $('#selectTree').hide();
+      $('#controllTree').css('margin-left','-10px');
+      $(this).html('显示调用链菜单');
+    }
+    else{
+      showSelectTree = true;
+      $('#selectTree').show();
+      $('#controllTree').css('margin-left','275px');
+      $(this).html('隐藏调用链菜单');
+    }
+  });
+}
 function initSortClick() {
   $('#sortByURI').bind('click',function () {
     if(currentSort == 0){
@@ -111,9 +130,11 @@ function loadTree(tData) {
     var icon = $('<i>').css('margin-right', '5').appendTo(node);
     let title = $('<span>').addClass('title').html(tData[i].title).appendTo(node);
     $('<div></div>').addClass('field').html(tData[i].field).css('display','none').appendTo(node);
-    // if(tData[i].field !== 'service'){
+    if(tData[i].field !== 'service')
       title.attr('data-toggle', 'tooltip').attr('data-placement', 'right').attr('title', 'Error:' + tData[i].errorCount + ' Exception:' + tData[i].exceptionCount +" Normal:"+tData[i].normalCount);
-      let shade = (tData[i].errorCount /(tData[i].exceptionCount + tData[i].errorCount + tData[i].normalCount)) / 0.5;
+    else
+      title.attr('data-toggle', 'tooltip').attr('data-placement', 'bottom').attr('title', 'Error:' + tData[i].errorCount + ' Exception:' + tData[i].exceptionCount +" Normal:"+tData[i].normalCount);
+      let shade = (tData[i].errorCount /(tData[i].exceptionCount + tData[i].errorCount + tData[i].normalCount)) / 0.2;
       node.css('background-color','rgba(242,222,222,'+ shade +')');
       node.hover(function () {
         node.css('background-color','#cccccc');
@@ -283,21 +304,15 @@ function nodeClick(box) {
           showServiceInfo(selectedTraceId[currentTraceId],serviceName,1);
         }
         else if(selectedServices[0].contains(serviceName)){
-          $(this).bind('click',function () {
             showServiceInfo(selectedTraceId[0],serviceName,0);
-          });
         }
         else if(selectedServices[1].contains(serviceName)){
-          $(this).bind('click',function () {
             showServiceInfo(selectedTraceId[1],serviceName,0);
-          });
         }
       }
       else if(selectedServices.length == 1){
         if(selectedServices[0].contains(serviceName)){
-          $(this).bind('click',function () {
             showServiceInfo(selectedTraceId[0],serviceName,0);
-          });
         }
       }
     }
@@ -632,6 +647,7 @@ function initLogVis(traceLog,loading) {
 
   if(logs.length > 0) {
     $('#logVis').css('height', window.screen.height * 0.3 + 'px');
+    $('#selectTree').css('height', window.screen.height * 0.39 + 'px');
     $('#errorCount').html(traceLog.errorCount);
     $('#exceptionCount').html(traceLog.exceptionCount);
     $('#normalCount').html(traceLog.normalCount);
@@ -685,8 +701,6 @@ function initControlLogVis() {
       $(this).html('显示调用链日志');
       showLogVis = true;
     }
-
-
   })
 }
 
@@ -931,12 +945,15 @@ function showServiceInfo(traceId,serviceName,type){
     scrollbar: false,
     zIndex: 20000000
   });
-
   let domMark1 = [];
   domMark1[0] = $('#instanceList1');
   domMark1[1] = $('#instanceInformation1');
   getLogByTraceIDAndServiceName(domMark1,traceId,serviceName,loading);
   if(type === 1){
+    $('.layui-layer-tabmain').eq(0).children().each(function (i) {
+      if(i === 1)
+        $(this).hide();
+    });
     let domMark2 = [];
     domMark2[0] = $('#instanceList2');
     domMark2[1] = $('#instanceInformation2');
