@@ -36,8 +36,10 @@ const LogPageComponent = component(function LogPage() {
       GoToLogUI.attachTo('#dependency-query-form');
       SelectTree.attachTo('#select-tree-area');
       i18nInit('dep');
+      initClassifyListen();
       $(document.body).css('overflow-y','hidden');
       getRequestWithTraceIDByTimeRange(loading);
+
     } catch (e) {
       layer.close(loading);
     }
@@ -51,6 +53,16 @@ var address = 'http://10.141.212.25';
 //var serviceInstanceNames = new Array();
 //var globeTraceLogData = {};
 var currentSort = 1;
+var allColor = ['#ffff00',
+  '#ff0000',
+  '#ff9999',
+  '#EE7621',
+  '#99ff00',
+  '#9900cc',
+  '#666600',
+  '#3399cc',
+  '#BCEE68',
+  '#8B4500'];
 
 Array.prototype.contains = function(element) {
   for (var i = 0; i < this.length; i++) {
@@ -64,16 +76,18 @@ Array.prototype.contains = function(element) {
 function showSelectTree(requestWithTraceID) {
   let html = '<div id="trace-tree">';
   var data = praseRequestWithTraceID(requestWithTraceID);
-  html += loadTree(data).html();
-  html += '</div>';
-  $('#selectTree').html(html);
-  $('#controllTree').show();
-  $('#trace-tree').children('li').each(function () {
-    $(this).children('a').children('span').tooltip();
-  });
-  nodeClick($('#trace-tree'));
-  initSortClick();
-  initControlTree();
+  if(data.length > 0){
+    html += loadTree(data).html();
+    html += '</div>';
+    $('#selectTree').html(html);
+    $('#controllTree').show();
+    $('#trace-tree').children('li').each(function () {
+      $(this).children('a').children('span').tooltip();
+    });
+    nodeClick($('#trace-tree'));
+    initSortClick();
+    initControlTree();
+  }
 }
 function initControlTree(){
   var showSelectTree = true;
@@ -1136,228 +1150,71 @@ function initialInstanceLog(el,data) {
   el.html(html);
 }
 
+function getCluster(classifyNumber,loading) {
+  let time = {};
+  let parm = window.location.search;
+  if (parm.length > 1){
+    parm = parm.substring(1,parm.length);
+    time.endTime = Number(parm.split('&')[0].split('=')[1]) ;
+    time.lookback = time.endTime - Number(parm.split('&')[1].split('=')[1]) ;
+  }
+  else{
+    time.endTime = (new Date()).getTime();
+    time.lookback = 86400000;
+  }
+  $.ajax({
+    async: true,
+    url: address + ':18888/cluster?endTs='+ time.endTime.toString() +'&lookback='+ time.lookback.toString() +'&k='+ classifyNumber.toString(),
+    type: 'get',
+    contentType: "application/json",
+    dataType: 'json',
+    success: function (data) {
+      layer.close(loading);
+      initColor(data);
+    },
+    error: function (event) {
+      layer.msg('获取服务日志失败',{icon:2});
+    }
+  });
+}
 
-// function getInstanceInfo(data, serviceName){
-//   let instanceInfos = new Map();
-//   let serviceInstanceNames2 = new Array();
-//   for (let i = 0; i < data.logs.length; i++) {
-//     let log = data.logs[i];
-//
-//     if (logs.serviceInfo.serviceName === serviceName) {
-//       if(!serviceInstanceNames2.contains(log.serviceInfo.instanceInfo.instanceName)){
-//         serviceInstanceNames2.push(log.serviceInfo.instanceInfo.instanceName);
-//         let instanceInfo = {};
-//         let traceInfo = {};
-//         let serviceInfo = {};
-//         let nodeInfo = {};
-//         let logInfo = {}
-//         let logInfos = new Array();
-//
-//         traceInfo.traceId = log.traceInfo.traceId;
-//         traceInfo.spanId = log.traceInfo.spanId;
-//         traceInfo.parentSpanId = log.traceInfo.parentSpanId;
-//
-//         serviceInfo.serviceName = log.serviceInfo.serviceName;
-//         serviceInfo.instanceName = log.serviceInfo.instanceInfo.instanceName;
-//         serviceInfo.instanceStatus = log.serviceInfo.instanceInfo.status;
-//         serviceInfo.containerName = log.serviceInfo.instanceInfo.container.name;
-//         serviceInfo.imageName = log.serviceInfo.instanceInfo.container.imageName;
-//         serviceInfo.imageVersion = log.serviceInfo.instanceInfo.container.imageVersion;
-//         serviceInfo.containerPort = log.serviceInfo.instanceInfo.container.ports[0].containerPort;
-//         serviceInfo.containerPrococol = log.serviceInfo.instanceInfo.container.ports[0].protocol;
-//
-//         nodeInfo.role = log.serviceInfo.node.role;
-//         nodeInfo.name = log.serviceInfo.node.name;
-//         nodeInfo.ip = log.serviceInfo.node.ip;
-//         nodeInfo.status = log.serviceInfo.node.status;
-//         nodeInfo.kubeProxyVersion = log.serviceInfo.node.kubeProxyVersion;
-//         nodeInfo.kubeletVersion = log.serviceInfo.node.kubeletVersion;
-//         nodeInfo.operatingSystem = log.serviceInfo.node.operatingSystem;
-//         nodeInfo.osImage = log.serviceInfo.node.osImage;
-//         nodeInfo.containerRuntimeVersion = log.serviceInfo.node.containerRuntimeVersion;
-//
-//         logInfo.time = log.timestamp;
-//         logInfo.logType = log.logType;
-//         logInfo.requestType = log.requestType;
-//         logInfo.uri = log.uri;
-//         logInfo.message = log.logInfo;
-//         logInfos.push(logInfo);
-//
-//         instanceInfo.traceInfo = traceInfo;
-//         instanceInfo.serviceInfo = serviceInfo;
-//         instanceInfo.nodeInfo = nodeInfo;
-//         instanceInfo.logInfos = logInfos;
-//
-//         instanceInfos.set(log.serviceInfo.instanceInfo.instanceName, instanceInfo);
-//       }
-//       else {
-//         let instanceInfo = instanceInfos.get(log.serviceInfo.instanceInfo.instanceName);
-//         let logInfo = {};
-//
-//         logInfo.time = log.timestamp;
-//         logInfo.logType = log.logType;
-//         logInfo.requestType = log.requestType;
-//         logInfo.message = log.logInfo;
-//
-//         instanceInfo.logInfos.push(logInfo);
-//       }
-//     }
-//   }
-//
-//   console.log(instanceInfos);
-//   return instanceInfos;
-// }
-//
-// function constructLogArea(instanceName, instanceInfoMap){
-//   let instanceInfo = instanceInfoMap.get(instanceName);
-//   let logInfos = instanceInfo.logInfos;
-//   let logHtml = '';
-//   for(let i = 0; i < logInfos.length; i++){
-//     let logInfo = logInfos[i];
-//     logHtml += '<tr>';
-//     logHtml += '<td>'+logInfo.time+'</td>';
-//     logHtml += '<td>'+logInfo.logType+'</td>';
-//     logHtml += '<td>'+logInfo.uri+'</td>';
-//     logHtml += '<td>'+logInfo.message+'</td>';
-//     logHtml += '</tr>';
-//   }
-//   return logHtml;
-// }
-//
-// function setServiceInstanceNames(data, serviceName){
-//   for (let i = 0; i < data.logs.length; i++) {
-//     let log = data.logs[i];
-//     if (log.serviceInfo.serviceName == serviceName) {
-//       if(!serviceInstanceNames.contains(log.serviceInfo.instanceInfo.instanceName)){
-//         serviceInstanceNames.push(log.serviceInfo.instanceInfo.instanceName);
-//       }
-//     }
-//   }
-// }
-//
-// function constuctButtonArea(serviceInstanceNames){
-//   let html = '';
-//   html+='<div class="list-group">'
-//   for (let i = serviceInstanceNames.length - 1; i >= 0; i--) {
-//     let buttonName = serviceInstanceNames[i];
-//     html+='<button type="button" class="list-group-item list-group-item-info instance-button">' + buttonName + '</button>';
-//   }
-//   html+='</div>';
-//   return html;
-// }
-//
-// function constructServiceArea(instanceName, instanceInfoMap){
-//   let instanceInfo = instanceInfoMap.get(instanceName);
-//   let serviceInfo = instanceInfo.serviceInfo;
-//   let html = '';
-//   html += '<tr>';
-//   html+='<td>'+serviceInfo.serviceName+'</td>';
-//   html+='<td>'+serviceInfo.instanceName+'</td>';
-//   html+='<td>'+serviceInfo.instanceStatus+'</td>';
-//   html+='<td><dl class="dl-horizontal">';
-//   html+='<dt>name</dt><dd>'+serviceInfo.containerName+'</dd>';
-//   html+='<dt>imageName</dt><dd>'+serviceInfo.imageName+'</dd>';
-//   html+='<dt>imageVersion</dt><dd>'+serviceInfo.imageVersion+'</dd>';
-//   html+='<dt>port</dt><dd>'+serviceInfo.containerPort+'</dd>';
-//   html+='<dt>protocol</dt><dd>'+serviceInfo.containerPrococol+'</dd>';
-//   html+='</dl></td>';
-//   html+='</tr>';
-//   return html;
-// }
-//
-// function constructNodeArea(instanceName, instanceInfoMap){
-//   let instanceInfo = instanceInfoMap.get(instanceName);
-//   let nodeInfo = instanceInfo.nodeInfo;
-//   let html = '';
-//   html += '<tr>';
-//   html += '<td>' + nodeInfo.role + '</td>';
-//   html += '<td>' + nodeInfo.name + '</td>';
-//   html += '<td>' + nodeInfo.ip + '</td>';
-//   html += '<td>' + nodeInfo.status + '</td>';
-//   html += '<td>' + nodeInfo.kubeProxyVersion + '</td>';
-//   html += '<td>' + nodeInfo.kubeletVersion + '</td>';
-//   html += '<td>' + nodeInfo.operatingSystem + '</td>';
-//   html += '<td>' + nodeInfo.osImage + '</td>';
-//   html += '<td>' + nodeInfo.containerRuntimeVersion + '</td>';
-//   html += '</tr>';
-//   return html;
-//
-// }
-//
-// function constructTraceArea(instanceName, instanceInfoMap){
-//   let instanceInfo = instanceInfoMap.get(instanceName);
-//   let traceInfo = instanceInfo.traceInfo;
-//   let html = '';
-//   html += '<tr>';
-//   html += '<td>'+traceInfo.traceId+'</td>'
-//   html += '<td>'+traceInfo.spanId+'</td>'
-//   html += '<td>'+traceInfo.parentSpanId+'</td>'
-//   html += '</tr>';
-//   return html;
-// }
-//
-// function loadLogInfo(serviceName){
-//   setServiceInstanceNames(globeTraceLogData,serviceName);
-//   let html =        '<div> '
-//     +   '<div class="container">'
-//     +       '<div class="row">'
-//     +          '<div class="col-md-2" >'
-//     +              '<p class="lead">Instances</p>'
-//     +              constuctButtonArea(serviceInstanceNames)
-//     +          '</div>'
-//     +          '<div class="col-md-10">'
-//     +              '<p class="lead">Instance Information</p>'
-//     +              '<div id = "instanceInformation">'
-//     +              '</div>'
-//   +          '</div>'
-//   +       '</div>'
-//   +   '</div>'
-//   + '</div>';
-//   return html;
-// }
-//
-// function loadRightInfo(instanceNameLocal, instanceInfoMap){
-//   let html = '';
-//   html +=                            '<table class="table table-hover table-condensed table-striped table-bordered">';
-//   html +=                                        '<tr>';
-//   html +=                                           '<th>Service Name</th>';
-//   html +=                                           '<th>Instance Name</th>';
-//   html +=                                           '<th>Status</th>';
-//   html +=                                           '<th>Container</th>';
-//   html +=                                        '</tr>';
-//   html +=                                        constructServiceArea(instanceNameLocal, instanceInfoMap);
-//   html +=               			  '</table>';
-//   html +=                             '<p class="lead">Node Information</p>';
-//   html +=                             '<table class="table table-hover table-condensed table-striped table-bordered">';
-//   html +=                                        '<tr>';
-//   html +=                                           '<th>Role</th>';
-//   html +=                                           '<th>Name</th>';
-//   html +=                                           '<th>IP</th>';
-//   html +=                                           '<th>Status</th>';
-//   html +=                                           '<th>kubeProxyVersion</th>';
-//   html +=                                           '<th>kubeletVersion</th>';
-//   html +=                                           '<th>operatingSystem</th>';
-//   html +=                                           '<th>osImage</th>';
-//   html +=                                           '<th>containerRuntimeVersion</th>';
-//   html +=                                        '</tr>';
-//   html +=                        				 constructNodeArea(instanceNameLocal, instanceInfoMap);
-//   html +=               			 '</table>';
-//   html +=                             '<p class="lead">Log Information</p>';
-//   html +=                             '<table class="table table-hover table-condensed table-striped table-bordered keepIn">';
-//   html +=                                        '<tr>';
-//   html +=                                           '<th>Time</th>';
-//   html +=                                           '<th>logType</th>';
-//   html +=                                           '<th>Uri</th>';
-//   html +=                                           '<th>logInfo</th>';
-//   html +=                                        '</tr>';
-//   html +=                                        constructLogArea(instanceNameLocal, instanceInfoMap);
-//   html +=               			  '</table>';
-//   return html;
-// }
-//
-// function initialInfo(traceId, instanceName, serviceName){
-//   $("#instanceInformation").html(loadRightInfo(instanceName, getInstanceInfo(getLogByTraceIDAndServiceName(traceId,serviceName,instanceName), serviceName)));
-// }
+function initColor(data) {
+  initialServiceColor();
+  for(let i = 0; i < data.clusters.length; i++){
+    highlightServicesByName(data.clusters[i],allColor[i]);
+  }
+}
+
+function highlightServicesByName(service,color) {
+  let nodes = document.getElementsByClassName('node enter');
+  for (let i = 0; i < nodes.length; i++) {
+    let tn = nodes[i].getAttribute('data-node');
+    if (isInArray(service,tn)) {
+      let node = nodes[i].getElementsByTagName('rect')[0];
+      node.setAttribute('fill', color);
+    }
+  }
+}
+
+function initClassifyListen() {
+  $('#classify').bind('click',function () {
+    const classifyNumber = $('#classifyNumber').val();
+    if(classifyNumber !== undefined && classifyNumber != null){
+      if(classifyNumber >= 2 && classifyNumber <=10){
+        const loading = layer.load(2,{
+          shade: 0.3,
+          scrollbar: false,
+          zIndex: 20000000
+        });
+        getCluster(classifyNumber,loading);
+      }
+      else{
+        layer.msg(2,'分类数量必须在2~10之间');
+      }
+    }
+    return false;
+  });
+}
 
 export default function initializeLog(config) {
   LogPageComponent.attachTo('.content', {config});
