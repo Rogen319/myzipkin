@@ -11,6 +11,7 @@ import SelectTree from '../component_ui/selectTree';
 import {logTemplate} from '../templates';
 import {i18nInit} from '../component_ui/i18n';
 import '../../libs/layer/layer';
+import '../../libs/echarts/echarts';
 
 const LogPageComponent = component(function LogPage() {
   this.after('initialize', function() {
@@ -89,6 +90,7 @@ function showSelectTree(requestWithTraceID) {
     initControlTree();
   }
 }
+
 function initControlTree(){
   var showSelectTree = true;
   $('#selectTree').show();
@@ -107,6 +109,7 @@ function initControlTree(){
     }
   });
 }
+
 function initSortClick() {
   $('#sortByURI').bind('click',function () {
     if(currentSort == 0){
@@ -306,7 +309,6 @@ function nodeClick(box) {
           }
         }
       });
-      initServiceClick();
       if ($.trim($(this).find('.open').val()) === 'true') {
         hightLightAndShowLog();
       }
@@ -335,6 +337,7 @@ function nodeClick(box) {
 
 function hightLightAndShowLog() {
   highlightServices();
+  initServiceClick();
   showNoticeWindow();
   $('#sortByURI').children('i').hide();
   $('#sortByTime').children('i').show();
@@ -996,7 +999,6 @@ function getLogByTraceIDAndServiceName(el,traceId,serviceName,loading) {
   });
 }
 
-
 function initialInfo(el,data,chosen) {
   let instanceWithLogList = data.instanceWithLogList;
   if(instanceWithLogList.length <= 0){
@@ -1171,6 +1173,7 @@ function getCluster(classifyNumber,loading) {
     success: function (data) {
       layer.close(loading);
       initColor(data);
+      showClassifyNoticeWindow(data);
     },
     error: function (event) {
       layer.msg('获取服务日志失败',{icon:2});
@@ -1215,6 +1218,56 @@ function initClassifyListen() {
     return false;
   });
 }
+
+function showClassifyNoticeWindow(data) {
+  let html = '';
+  for(let i = 0;i < data.clusters.length ;i++){
+    html += '<li class="list-group-item">' +
+      '          <div class = "color-box pull-left">' +
+      '          </div>&nbsp;' +
+      'cluster ' + i.toString() +
+      '        </li>';
+  }
+  html += '<li class="list-group-item">' +
+      '          <div class = "color-box pull-left">' +
+      '          </div>&nbsp;' +
+      '聚类数据分析'+
+      '        </li>';
+
+  $('#selectedTrace').html(html);
+
+  $('#selectedTrace').children('li').each(function (i) {
+    if(i < data.clusterCount){
+      $(this).bind('click',function () {
+        initialServiceColor();
+        highlightServicesByName(data.clusters[i],allColor[i]);
+      });
+      $(this).find('.color-box').css('background-color',allColor[i]);
+    }
+    else{
+      $(this).bind('click',function () {
+        showClassifyResult(data);
+      });
+      $(this).find('.color-box').css('background-color','#FFFFFF');
+    }
+
+  });
+}
+
+function showClassifyResult(data) {
+  let html = '';
+  layer.open({
+    shade: 0.3,
+    shadeClose: true,
+    area: ['1250px', '600px'],
+    closeBtn: 1,
+    anim: 0,
+    fixed: false,
+    title: '聚类结果统计',
+    content: html
+  });
+}
+
 
 export default function initializeLog(config) {
   LogPageComponent.attachTo('.content', {config});
