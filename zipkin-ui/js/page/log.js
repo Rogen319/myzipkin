@@ -11,7 +11,7 @@ import SelectTree from '../component_ui/selectTree';
 import {logTemplate} from '../templates';
 import {i18nInit} from '../component_ui/i18n';
 import '../../libs/layer/layer';
-import '../../libs/echarts/echarts';
+var echarts = require('echarts');
 
 const LogPageComponent = component(function LogPage() {
   this.after('initialize', function() {
@@ -1225,7 +1225,7 @@ function showClassifyNoticeWindow(data) {
     html += '<li class="list-group-item">' +
       '          <div class = "color-box pull-left">' +
       '          </div>&nbsp;' +
-      'cluster ' + i.toString() +
+      'cluster ' + (i+1).toString() +
       '        </li>';
   }
   html += '<li class="list-group-item">' +
@@ -1255,8 +1255,20 @@ function showClassifyNoticeWindow(data) {
 }
 
 function showClassifyResult(data) {
-  let html = '';
+  let html = '<div class="container">' +
+    ' <div class="row">' +
+    '   <div class="col-sm-6 col-md-6 col-lg-6">' +
+    '     <div id = "pieResult">' +
+    '     </div>' +
+    '   </div>' +
+    '   <div class="col-sm-6 col-md-6 col-lg-6">' +
+    '     <div id = "barResult">' +
+    '     </div>' +
+    '   </div>' +
+    ' </div> ' +
+    '</div>';
   layer.open({
+    type: 1,
     shade: 0.3,
     shadeClose: true,
     area: ['1250px', '600px'],
@@ -1266,8 +1278,103 @@ function showClassifyResult(data) {
     title: '聚类结果统计',
     content: html
   });
+  initPieResult(data);
+  initBarResult(data);
 }
 
+function initPieResult(data) {
+  let pieResult = echarts.init(document.getElementById('pieResult'));
+  let pieData = [];
+  let typeName = [];
+  for(let i = 0; i < data.clusterCount; i++){
+    typeName[i] = 'Type' + (i+1).toString();
+    let dataItem = {};
+    dataItem.value = data.clusters[i].length;
+    dataItem.name = typeName[i];
+    dataItem.itemStyle = {};
+    dataItem.itemStyle.normal = {};
+    dataItem.itemStyle.normal.color = allColor[i];
+    dataItem.itemStyle.emphasis = {};
+    dataItem.itemStyle.emphasis.shadowBlur = 10;
+    dataItem.itemStyle.emphasis.shadowOffsetX = 0;
+    dataItem.itemStyle.emphasis.shadowColor = 'rgba(0, 0, 0, 0.5)';
+    pieData[i] = dataItem;
+  }
+  let options = {
+    backgroundColor: 'white',
+    title: {
+      text: '聚类结果分析',
+      left: 'center',
+      top: 20,
+    },
+    tooltip: {
+      trigger: 'item',
+      formatter: "{a} <br/>{b} : {c} ({d}%)"
+    },
+    legend: {
+      orient: 'vertical',
+      left: 'left',
+      data: typeName
+    },
+    series: [
+      {
+        name: '聚类结果饼图',
+        type: 'pie',
+        clockwise: 'true',
+        startAngle: '0',
+        radius : '55%',
+        center: ['50%', '60%'],
+        data: pieData,
+      }
+    ]
+  };
+  pieResult.setOption(options);
+}
+
+function initBarResult(data) {
+  let barResult = echarts.init(document.getElementById('barResult'));
+  let barData = [];
+  let typeName = [];
+  for(let i = 0; i < data.clusterCount; i++){
+    let dataItem = {};
+    dataItem.value = data.clusters[i].length;
+    dataItem.itemStyle = {};
+    dataItem.itemStyle.color = allColor[i];
+    typeName[i] = 'Type' + (i+1).toString();
+    barData[i] = dataItem;
+  }
+  let options = {
+    backgroundColor: 'white',
+    title: {
+      text: '聚类结果分析',
+      left: 'center',
+      top: 20,
+    },
+    xAxis: {
+      type: 'category',
+      data: typeName
+    },
+    yAxis: {
+      type: 'value'
+    },
+    series: [{
+      data: barData,
+      itemStyle: {
+        normal: {
+          label: {
+            show: true,
+            position: 'top',
+            textStyle: {
+              color: '#000'
+            }
+          }
+        }
+      },
+      type: 'bar'
+    }]
+  };
+  barResult.setOption(options);
+}
 
 export default function initializeLog(config) {
   LogPageComponent.attachTo('.content', {config});

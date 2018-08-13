@@ -203,3 +203,12 @@
   top: 150px;
   display: none;
 }
+
+#pieResult {
+  width: 500px;
+  height: 500px;
+}
+#barResult {
+  width: 500px;
+  height: 500px;
+}
