@@ -208,7 +208,27 @@
   width: 500px;
   height: 500px;
 }
+
 #barResult {
   width: 500px;
   height: 500px;
+}
+
+#errorPieVis {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  background-color: #ffffff;
+  overflow-x: hidden;
+  display: none;
+}
+
+#errorPie {
+  width: 500px;
+  height: 400px;
+}
+
+#errorBar {
+  width: 600px;
+  height: 400px;
 }

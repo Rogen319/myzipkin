@@ -40,7 +40,6 @@ const LogPageComponent = component(function LogPage() {
       initClassifyListen();
       $(document.body).css('overflow-y','hidden');
       getRequestWithTraceIDByTimeRange(loading);
-
     } catch (e) {
       layer.close(loading);
     }
@@ -51,8 +50,6 @@ var currentTraceId = 0;
 var selectedTraceId = [];
 var selectedServices = [];
 var address = 'http://10.141.212.25';
-//var serviceInstanceNames = new Array();
-//var globeTraceLogData = {};
 var currentSort = 1;
 var allColor = ['#ffff00',
   '#ff0000',
@@ -89,6 +86,108 @@ function showSelectTree(requestWithTraceID) {
     initSortClick();
     initControlTree();
   }
+}
+
+function showErrorPie(data) {
+  if(data.requestWithTraceInfoList.length > 0){
+    $('#errorPieVis').css('height', window.screen.height * 0.4 + 'px');
+    $('#selectTree').css('height', window.screen.height * 0.39 + 'px');
+    initPie(data.requestWithTraceInfoList);
+    initVerticalBar(data.requestWithTraceInfoList);
+    $('#errorPieVis').show();
+  }
+}
+
+function initPie(data) {
+  let errorPie = echarts.init(document.getElementById('errorPie'));
+  let pieData = [];
+  let typeName = [];
+  for(let i = 0; i < data.length; i++){
+    typeName[i] = data[i].requestType;
+    let dataItem = {};
+    dataItem.value = ((data[i].errorCount / (data[i].errorCount + data[i].exceptionCount + data[i].normalCount)) * 100).toFixed(2);
+    dataItem.name = typeName[i];
+    dataItem.itemStyle = {};
+    dataItem.itemStyle.emphasis = {};
+    dataItem.itemStyle.emphasis.shadowBlur = 10;
+    dataItem.itemStyle.emphasis.shadowOffsetX = 0;
+    dataItem.itemStyle.emphasis.shadowColor = 'rgba(0, 0, 0, 0.5)';
+    pieData[i] = dataItem;
+  }
+  let options = {
+    backgroundColor: 'white',
+    title: {
+      text: '错误率分布图',
+      left: 'center',
+      top: 20,
+    },
+    tooltip: {
+      trigger: 'item',
+      formatter: "{a} <br/>{b} : {c}% ({d}%)"
+    },
+    legend: {
+      orient: 'vertical',
+      left: 'left',
+      data: typeName
+    },
+    series: [
+      {
+        name: '错误率分布图',
+        type: 'pie',
+        clockwise: 'true',
+        startAngle: '0',
+        radius : '55%',
+        center: ['50%', '60%'],
+        data: pieData,
+      }
+    ]
+  };
+  errorPie.setOption(options);
+}
+
+function initVerticalBar(data) {
+  let errorBar = echarts.init(document.getElementById('errorBar'));
+  let barData = [];
+  let typeName = [];
+  for(let i = 0; i < data.length; i++){
+    typeName[i] = data[i].requestType;
+    let dataItem = {};
+    dataItem.value = ((data[i].errorCount / (data[i].errorCount + data[i].exceptionCount + data[i].normalCount)) * 100).toFixed(2);
+    dataItem.name = typeName[i];
+    barData[i] = dataItem;
+  }
+  let options = {
+    backgroundColor: 'white',
+    title: {
+      text: '错误率分布图',
+      left: 'center'
+    },
+    tooltip: {
+      trigger: 'axis',
+      formatter: "{a} <br/> {b} : {c}%",
+      axisPointer: {
+        type: 'shadow'
+      }
+    },
+    legend: {
+      data: typeName
+    },
+    xAxis: {
+      type: 'value',
+    },
+    yAxis: {
+      type: 'category',
+      data: typeName
+    },
+    series: [
+      {
+        name: '错误率分布图',
+        type: 'bar',
+        data: barData,
+      }
+    ]
+  };
+  errorBar.setOption(options);
 }
 
 function initControlTree(){
@@ -606,6 +705,7 @@ function getRequestWithTraceIDByTimeRange(loading) {
     contentType: "application/json",
     success: function (data) {
       showSelectTree(data);
+      showErrorPie(data);
       layer.close(loading);
     },
     error: function (event) {
@@ -632,7 +732,6 @@ function getLogByTraceID(traceId,type,loading) {
 
 function initLogVis(traceLog,loading) {
   let html = '';
-  //globeTraceLogData = traceLog;
   let logs = traceLog.logs;
   for (let i = 0;i < logs.length;i++) {
     html += '<tr>'+
