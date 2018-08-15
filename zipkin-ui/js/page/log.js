@@ -831,6 +831,8 @@ function initLogVis(traceLog,loading) {
   }
 
   if(logs.length > 0) {
+    $('#maShiRo').hide();
+    $('#errorPieVis').hide();
     $('#logVis').css('height', window.screen.height * 0.3 + 'px');
     $('#selectTree').css('height', window.screen.height * 0.39 + 'px');
     $('#errorCount').html(traceLog.errorCount);
