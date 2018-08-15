@@ -1,7 +1,7 @@
 import {component} from 'flightjs';
 import d3 from 'd3';
 import $ from 'jquery';
-import dagreD3 from '../../libs/dagre-d3/js/dagre-d3'; // eslint-disable-line no-unused-vars
+// import dagreD3 from '../../libs/dagre-d3/js/dagre-d3'; // eslint-disable-line no-unused-vars
 
 const dagre = window.dagreD3;
 

@@ -1,0 +1,67 @@
+<div id="trace-tree">
+  {{#tData}}
+    <li>
+      <a class="tree-node" style="background-color: rgba(242,222,222,{{shade}})" >
+          {{#open}}
+            <i style="margin-right: 5px" class="fa fa-minus-square-o status "></i>
+          {{/open}}
+          {{^open}}
+            <i style="margin-right: 5px" class="fa fa-plus-square-o status"></i>
+          {{/open}}
+        <span class="title">{{title}}</span>
+        <div class="field" style="display: none" data-toggle="tooltip" data-placement="bottom" title="Error:{{errorCount}}  Exception:{{exceptionCount}} Normal:{{normalCount}}">{{field}}</div>
+        <div class="shade" style="display: none">{{shade}}</div>
+        <input class="open" value="{{open}}" style="display: none"/>
+      </a>
+      <ul>
+        {{#children}}
+          <li>
+            <a class="tree-node" style="background-color: rgba(242,222,222,{{shade}})" >
+              {{#open}}
+                <i style="margin-right: 5px" class="fa fa-minus-square-o status "></i>
+              {{/open}}
+              {{^open}}
+                <i style="margin-right: 5px" class="fa fa-plus-square-o status"></i>
+              {{/open}}
+              <span class="title">{{title}}</span>
+              <div class="field" style="display: none" data-toggle="tooltip" data-placement="bottom" title="Error:{{errorCount}}  Exception:{{exceptionCount}} Normal:{{normalCount}}">{{field}}</div>
+              <div class="shade" style="display: none">{{shade}}</div>
+              <input class="open" value="{{open}}" style="display: none"/>
+            </a>
+            <ul>
+              {{#children}}
+                <li>
+                  <a class="tree-node" style="background-color: rgba(242,222,222,{{shade}})" >
+                    {{#open}}
+                      <i style="margin-right: 5px" class="fa fa-minus-square-o status "></i>
+                    {{/open}}
+                    {{^open}}
+                      <i style="margin-right: 5px" class="fa fa-plus-square-o status"></i>
+                    {{/open}}
+                    <span class="title">{{title}}</span>
+                    <div class="field" style="display: none" data-toggle="tooltip" data-placement="bottom" title="Error:{{errorCount}}  Exception:{{exceptionCount}} Normal:{{normalCount}}">{{field}}</div>
+                    <div class="shade" style="display: none">{{shade}}</div>
+                    <input class="open" value="{{open}}" style="display: none"/>
+                  </a>
+                  <ul>
+                    {{#children}}
+                      <li>
+                        <a class="tree-node" style="background-color: rgba(242,222,222,{{shade}})" >
+                          <i style="margin-right: 5px" class="fa fa-building-o" aria-hidden="true"></i>
+                          <span class="title">{{title}}</span>
+                          <div class="field" style="display: none" data-toggle="tooltip" data-placement="bottom" title="Error:{{errorCount}}  Exception:{{exceptionCount}} Normal:{{normalCount}}">{{field}}</div>
+                          <div class="shade" style="display: none">{{shade}}</div>
+                        </a>
+                      </li>
+                    {{/children}}
+                  </ul>
+                </li>
+              {{/children}}
+            </ul>
+          </li>
+        {{/children}}
+      </ul>
+    </li>
+  {{/tData}}
+</div>
+
