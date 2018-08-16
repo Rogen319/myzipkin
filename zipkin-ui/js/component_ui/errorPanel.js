@@ -85,7 +85,7 @@ export default component(function errorRate() {
           clockwise: 'true',
           startAngle: '0',
           radius : '55%',
-          center: ['50%', '60%'],
+          center: ['65%', '50%'],
           data: pieData,
         }
       ]
@@ -96,8 +96,6 @@ export default component(function errorRate() {
       errorPie.on('click', function (params) {
         $('#errorPie').trigger('locateRequestTypeInSelectTree', params.data.name);
         $('#errorPie').trigger('initPie', {data:data[params.dataIndex].traceTypeList, type:2});
-        // this.locateRequestTypeInSelectTree(params.data.name);
-        // this.initPie(data[params.dataIndex].traceTypeList,2);
         $('#errorBar').html('');
       });
     }

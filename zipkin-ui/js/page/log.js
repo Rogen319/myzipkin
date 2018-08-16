@@ -50,7 +50,7 @@ const LogPageComponent = component(function LogPage() {
       SelectOperation.attachTo(document);
       InfoContent.attachTo(document);
       ClassifyPanel.attachTo('#classify');
-      ErrorPanel.attachTo(document);
+      ErrorPanel.attachTo('#errorPieVis');
       this.trigger('requestLogWithTraceIDByTimeRange',loading);
 
     } catch (e) {

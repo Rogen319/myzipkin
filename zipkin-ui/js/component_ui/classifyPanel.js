@@ -7,16 +7,23 @@ import echarts from 'echarts';
 
 export default component(function classify() {
 
-  const allColor = ['#ffff00',
-    '#ff0000',
-    '#ff9999',
+  const allColor = [
+    '#CC0000',
+    '#ffd700',
+    '#228B22',
+    '#5F9EA0',
+    '#ff6347',
+    '#6495ed',
     '#EE7621',
-    '#99ff00',
-    '#9900cc',
-    '#666600',
-    '#3399cc',
-    '#BCEE68',
-    '#8B4500'];
+    '#32cd32',
+    '#7b68ee',
+    '#1e90ff',
+    '#87cefa',
+    '#ff6666',
+    '#778899',
+    '#ba55d3',
+    '#D87093'
+    ];
 
   this.initH = function(e,d){
     this.highlightServicesByName(d.service, d.color);
