@@ -3,11 +3,20 @@ import $ from 'jquery';
 import {traceTreeTemplate} from "../templates";
 import {contextRoot} from '../publicPath';
 import '../../libs/layer/layer';
-import {showServiceInfo} from './InfoContent';
-import {getLogByTraceID, currentTraceId, selectedTraceId} from '../component_data/log';
+import {showServiceInfo} from './infoContent';
+import {globalVar} from '../component_data/log';
 
 
 export default component(function selectTree() {
+
+  Array.prototype.contains = function(element) {
+    for (var i = 0; i < this.length; i++) {
+      if (this[i] == element) {
+        return true;
+      }
+    }
+    return false;
+  };
 
   this.praseRequestWithTraceID = function(requestWithTraceID){
     var data = [];
@@ -21,6 +30,7 @@ export default component(function selectTree() {
       rootNode.field = 'root';
       rootNode.candidate = true;
       rootNode.shade = (rootNode.errorCount /(rootNode.exceptionCount + rootNode.errorCount + rootNode.normalCount)) / 0.2;
+      rootNode.isService = false;
       var traceTypeList = requestTypeList[i].traceTypeList;
       if(traceTypeList.length > 0){
         rootNode.open = false;
@@ -34,6 +44,7 @@ export default component(function selectTree() {
           addNode.field = 'traceType';
           addNode.candidate = true;
           addNode.shade = (addNode.errorCount /(addNode.exceptionCount + addNode.errorCount + addNode.normalCount)) / 0.2;
+          addNode.isService = false;
           var traceInfoList = traceTypeList[l].traceInfoList;
           if (traceInfoList.length > 0) {
             addNode.open = false;
@@ -47,6 +58,7 @@ export default component(function selectTree() {
               secondNode.field = 'trace';
               secondNode.candidate = true;
               secondNode.shade = (secondNode.errorCount /(secondNode.exceptionCount + secondNode.errorCount + secondNode.normalCount)) / 0.2;
+              secondNode.isService = false;
               var serviceList = traceInfoList[j].serviceWithCounts;
               if (serviceList.length > 0) {
                 secondNode.open = false;
@@ -60,9 +72,11 @@ export default component(function selectTree() {
                   leafNode.field = 'service';
                   leafNode.candidate = true;
                   leafNode.shade = (leafNode.errorCount /(leafNode.exceptionCount + leafNode.errorCount + leafNode.normalCount)) / 0.2;
+                  leafNode.isService = true;
                   allService[k] = leafNode;
                 }
                 secondNode.children = allService;
+                secondNode.serviceList = JSON.stringify(secondNode.children);
               }
               allTrace[j] = secondNode;
             }
@@ -163,39 +177,47 @@ export default component(function selectTree() {
         for (let i = 0; i < allService.length; i++) {
           allServiceName[i] = allService[i].title;
         }
-        if(selectedTraceId.length >= 2){
-          if(selectedTraceId.contains(t)){
+        if(globalVar.getSelectedTraceId().length >= 2){
+          if(globalVar.getSelectedTraceId().contains(t)){
             for(let i=0;i<2;i++){
-              if(selectedTraceId[i] === t){
-                currentTraceId = i;
+              if(globalVar.getSelectedTraceId()[i] === t){
+                globalVar.setCurrentTraceId(i);
                 break;
               }
             }
           }
           else{
-            if(currentTraceId == 0){
-              selectedTraceId[1] = t;
-              selectedServices[1] = allServiceName;
-              currentTraceId = 1;
+            if(globalVar.getCurrentTraceId() == 0){
+              // globalVar.getSelectedTraceId()[1] = t;
+              globalVar.setSelectedTraceId(1, t);
+              // globalVar.getSelectedServices()[1] = allServiceName;
+              globalVar.setSelectedServices(1, allServiceName);
+              globalVar.setCurrentTraceId(1) ;
             }
             else{
-              selectedTraceId[0] = t;
-              selectedServices[0] = allServiceName;
-              currentTraceId = 0;
+              // globalVar.getSelectedTraceId()[0] = t;
+              globalVar.setSelectedTraceId(0, t);
+              // globalVar.getSelectedServices()[0] = allServiceName;
+              globalVar.setSelectedServices(0, allServiceName);
+              globalVar.setCurrentTraceId(0) ;
             }
           }
         }
-        else if(selectedTraceId.length === 1){
-          if(selectedTraceId[0] !== t){
-            selectedTraceId[1] = t;
-            selectedServices[1] = allServiceName;
-            currentTraceId = 1;
+        else if(globalVar.getSelectedTraceId().length === 1){
+          if(globalVar.getSelectedTraceId()[0] !== t){
+            // globalVar.getSelectedTraceId()[1] = t;
+            globalVar.setSelectedTraceId(1, t);
+            // globalVar.getSelectedServices()[1] = allServiceName;
+            globalVar.setSelectedServices(1, allServiceName);
+            globalVar.setCurrentTraceId(1);
           }
         }
         else {
-          selectedTraceId[0] = t;
-          selectedServices[0] = allServiceName;
-          currentTraceId = 0;
+          // globalVar.getSelectedTraceId()[0] = t;
+          globalVar.setSelectedTraceId(0, t);
+          // globalVar.getSelectedServices()[0] = allServiceName;
+          globalVar.setSelectedServices(0, allServiceName);
+          globalVar.setCurrentTraceId(0);
         }
 
         $(this).parent().parent('ul').parent().find('.tree-node').each(function() {
@@ -215,26 +237,26 @@ export default component(function selectTree() {
           }
         });
         if ($.trim($(this).find('.open').val()) === 'true') {
-          this.trigger(document,'hightLightAndShowLog');
+          $(this).trigger('hightLightAndShowLog');
           // hightLightAndShowLog();
         }
       }
       else if ($.trim($(this).find('.field').html()) === 'service') {
         const serviceName = $.trim($(this).find('.title').html());
-        if(selectedServices.length >= 2){
-          if(selectedServices[0].contains(serviceName) && selectedServices[1].contains(serviceName)){
-            showServiceInfo(selectedTraceId[currentTraceId],serviceName,1);
+        if(globalVar.getSelectedServices().length >= 2){
+          if(globalVar.getSelectedServices()[0].contains(serviceName) && globalVar.getSelectedServices()[1].contains(serviceName)){
+            showServiceInfo(globalVar.getSelectedTraceId()[globalVar.getCurrentTraceId()],serviceName,1);
           }
-          else if(selectedServices[0].contains(serviceName)){
-            showServiceInfo(selectedTraceId[0],serviceName,0);
+          else if(globalVar.getSelectedServices()[0].contains(serviceName)){
+            showServiceInfo(globalVar.getSelectedTraceId()[0],serviceName,0);
           }
-          else if(selectedServices[1].contains(serviceName)){
-            showServiceInfo(selectedTraceId[1],serviceName,0);
+          else if(globalVar.getSelectedServices()[1].contains(serviceName)){
+            showServiceInfo(globalVar.getSelectedTraceId()[1],serviceName,0);
           }
         }
-        else if(selectedServices.length == 1){
-          if(selectedServices[0].contains(serviceName)){
-            showServiceInfo(selectedTraceId[0],serviceName,0);
+        else if(globalVar.getSelectedServices().length == 1){
+          if(globalVar.getSelectedServices()[0].contains(serviceName)){
+            showServiceInfo(globalVar.getSelectedTraceId()[0],serviceName,0);
           }
         }
       }
@@ -243,35 +265,38 @@ export default component(function selectTree() {
 
   this.initSortClick = function(){
     $('#sortByURI').bind('click',function () {
-      if(currentSort == 0){
+      if(globalVar.getCurrentSort() == 0){
         $(this).children('i').hide();
         $('#sortByTime').children('i').show();
-        currentSort = 1;
+        globalVar.setCurrentSort(1);
         const loading = layer.load(2,{
           shade: 0.3,
           scrollbar: false,
           zIndex: 20000000
         });
-        getLogByTraceID(selectedTraceId[currentTraceId],currentSort,loading);
+        $(this).trigger('getLogByTraceID',
+          {traceId:globalVar.getSelectedTraceId()[globalVar.getCurrentTraceId()],type:globalVar.getCurrentSort(),loading:loading});
+        // LogData.getLogByTraceID(globalVar.getSelectedTraceId()[globalVar.getCurrentTraceId()],globalVar.getCurrentSort(),loading);
       }
     });
     $('#sortByTime').bind('click',function () {
-      if(currentSort === 1){
+      if(globalVar.getCurrentSort() === 1){
         $(this).children('i').hide();
         $('#sortByURI').children('i').show();
-        currentSort = 0;
+        globalVar.setCurrentSort(0);
         const loading = layer.load(2,{
           shade: 0.3,
           scrollbar: false,
           zIndex: 20000000
         });
-        getLogByTraceID(selectedTraceId[currentTraceId],currentSort,loading);
+        $(this).trigger('getLogByTraceID',
+          {traceId:globalVar.getSelectedTraceId()[globalVar.getCurrentTraceId()],type:globalVar.getCurrentSort(),loading:loading});
+        // LogData.getLogByTraceID(globalVar.getSelectedTraceId()[globalVar.getCurrentTraceId()],globalVar.getCurrentSort(),loading);
       }
     });
   };
 
   this.render = function(data, loading) {
-    console.log(data);
     const model = {tData:data};
     this.$node.html(traceTreeTemplate({
       contextRoot,
@@ -282,15 +307,44 @@ export default component(function selectTree() {
     $('#trace-tree').children('li').each(function () {
       $(this).children('a').children('span').tooltip();
     });
-    this.initControlTree();
+    this.trigger('closeAll');
     this.nodeClick($('#trace-tree'));
     this.initSortClick();
+    this.initControlTree();
+  };
+
+  this.closeAll = function() {
+    $('#selectTree').find('.tree-node').each(function () {
+      if ($.trim($(this).find('.field').html()) === 'root'){
+        $(this).css('color', '');
+        $(this).css('background-color','rgba(242,222,222,'+ $.trim($(this).find('.shade').html()) +')');
+        $(this).next().slideUp(500,function () {
+          $(this).children('[data-toggle="tooltip"]').tooltip('hide');
+        });
+        $(this).find('.open').val('false');
+        $(this).find('.status').removeClass('fa-minus-square-o').addClass('fa-plus-square-o');
+
+        $(this).next().find('.tree-node').each(function () {
+          $(this).css('color', '');
+          $(this).css('background-color','rgba(242,222,222,'+ $.trim($(this).find('.shade').html()) +')');
+          $(this).next().slideUp(500,function () {
+            $(this).children('[data-toggle="tooltip"]').tooltip('hide');
+          });
+          $(this).find('.open').val('false');
+          $(this).find('.status').removeClass('fa-minus-square-o').addClass('fa-plus-square-o');
+        });
+      }
+    });
+
   };
 
 
   this.after('initialize', function afterInitialize() {
 
+    this.on(document, 'closeAll', this.closeAll);
+
     this.on(document, 'receiveLogWithTraceIDByTimeRange', function(ev, data) {
+      ev.stopPropagation();
       this.render(this.praseRequestWithTraceID(data.data),data.loading);
     });
 

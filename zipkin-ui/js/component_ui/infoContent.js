@@ -1,11 +1,20 @@
 import {component} from "flightjs";
 import $ from "jquery";
 import '../../libs/layer/layer';
-import {getLogByTraceIDAndServiceName} from '../component_data/log';
+import {globalVar } from '../component_data/log';
 
 export default component(function ServiceInfoModal() {
 
-  this.initI = function(d){
+  Array.prototype.contains = function(element) {
+    for (var i = 0; i < this.length; i++) {
+      if (this[i] == element) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  this.initI = function(e, d){
     this.initialInfo(d.e1, d.data, d.chosen);
   };
 
@@ -19,8 +28,8 @@ export default component(function ServiceInfoModal() {
     let instanceName = [];
     for(let i = 0;i < instanceWithLogList.length; i++)
       instanceName[i] = instanceWithLogList[i].serviceInfo.instanceInfo.instanceName;
-    initialInstanceList(el[0],data,instanceName,chosen);
-    initialInstanceLog(el[1],instanceWithLogList[chosen]);
+    this.initialInstanceList(el[0],data,instanceName,chosen);
+    this.initialInstanceLog(el[1],instanceWithLogList[chosen]);
   };
 
   this.initialInstanceList = function(el,data,instanceName,chosen) {
@@ -193,7 +202,8 @@ export default component(function ServiceInfoModal() {
     function mouseMove(e){
       el.css('height', y - e.clientY + 'px');
       bn.css('bottom', y - e.clientY + 'px');
-      this.keepTraceOn();
+      $(this).trigger('keepTraceOn');
+      // this.keepTraceOn();
     }
     function mouseUp()
     {
@@ -256,7 +266,7 @@ export default component(function ServiceInfoModal() {
     });
   };
 
-  this.showNodeInfo = function(node) {
+  this.showNodeInfo = function(e,node) {
     let html = '<div class="container node-info">' +
       '    <table class="table table-striped">' +
       '      <tr>' +
@@ -307,7 +317,7 @@ export default component(function ServiceInfoModal() {
     });
   };
 
-  this.showServiceInstanceInfo = function(serviceInstance) {
+  this.showServiceInstanceInfo = function(e, serviceInstance) {
     let ports = "";
     for(let i=0;i<serviceInstance.container.ports.length;i++){
       if (i !== 0)
@@ -393,26 +403,28 @@ export default component(function ServiceInfoModal() {
       $('#logTable').html(html);
       $('#logEntrance').show();
       $('#logVis').show();
-      listenMove($('#logVis'),$('#logEntrance'));
-      initControlLogVis();
-      keepTraceOn();
-      optTableStyle();
+      this.listenMove($('#logVis'),$('#logEntrance'));
+      this.initControlLogVis();
+      this.keepTraceOn();
+      this.optTableStyle();
       $('#logTable').find('.nodeBtn').each(function () {
         let node = JSON.parse($(this).find('.nodeInfo').html());
         $(this).click(function () {
-          showNodeInfo(node);
+          $(this).trigger('showNodeInfo', node);
+          // this.showNodeInfo(node);
         });
       });
       $('#logTable').find('.serviceInstanceBtn').each(function () {
         let serviceInstance = JSON.parse($(this).find('.serviceInstanceInfo').html());
         $(this).click(function () {
-          showServiceInstanceInfo(serviceInstance);
+          $(this).trigger('showServiceInstanceInfo', serviceInstance);
+          // this.showServiceInstanceInfo(serviceInstance);
         });
       });
     }
   };
 
-  this.initL = function(d){
+  this.initL = function(e,d){
     this.initLogVis(d.data, d.loading);
   };
 
@@ -421,6 +433,9 @@ export default component(function ServiceInfoModal() {
   this.after('initialize', function afterInitialize() {
     this.on(document, 'initLogVis',this.initL);
     this.on(document, 'initialInfo',this.initI);
+    this.on(document, 'showServiceInstanceInfo',this.showServiceInstanceInfo);
+    this.on(document, 'keepTraceOn',this.keepTraceOn);
+    this.on(document, 'showNodeInfo',this.showNodeInfo)
 
   });
 });
@@ -456,7 +471,7 @@ export function showServiceInfo(traceId,serviceName,type){
   content[0] = temp;
   if(type === 1){
     let temp2 = {};
-    temp2.title = currentTraceId === 0 ? selectedTraceId[1]:selectedTraceId[0];
+    temp2.title = globalVar.getCurrentTraceId() === 0 ? globalVar.getSelectedTraceId()[1]:globalVar.getSelectedTraceId()[0];
     temp2.content = html2;
     content[1] = temp2;
   }
@@ -478,7 +493,8 @@ export function showServiceInfo(traceId,serviceName,type){
   let domMark1 = [];
   domMark1[0] = $('#instanceList1');
   domMark1[1] = $('#instanceInformation1');
-  getLogByTraceIDAndServiceName(domMark1,traceId,serviceName,loading);
+  $(domMark1[0]).trigger('getLogByTraceIDAndServiceName', {el:domMark1,traceId:traceId,serviceName:serviceName,loading:loading});
+  // LogData.getLogByTraceIDAndServiceName(domMark1,traceId,serviceName,loading);
   if(type === 1){
     $('.layui-layer-tabmain').eq(0).children().each(function (i) {
       if(i === 1)
@@ -487,6 +503,8 @@ export function showServiceInfo(traceId,serviceName,type){
     let domMark2 = [];
     domMark2[0] = $('#instanceList2');
     domMark2[1] = $('#instanceInformation2');
-    getLogByTraceIDAndServiceName(domMark2,currentTraceId === 0 ? selectedTraceId[1]:selectedTraceId[0],serviceName,loading);
+    let temp = globalVar.getCurrentTraceId() === 0 ? globalVar.getSelectedTraceId()[1]:globalVar.getSelectedTraceId()[0];
+    $(domMark2[0]).trigger('getLogByTraceIDAndServiceName', {el:domMark2,traceId:temp,serviceName:serviceName,loading:loading});
+    // LogData.getLogByTraceIDAndServiceName(domMark2,globalVar.getCurrentTraceId() === 0 ? globalVar.getSelectedTraceId()[1]:globalVar.getSelectedTraceId()[0],serviceName,loading);
   }
 }

@@ -10,12 +10,13 @@ import GoToLogUI from '../component_ui/goToLog';
 import {logTemplate} from '../templates';
 import {i18nInit} from '../component_ui/i18n';
 import '../../libs/layer/layer';
-var echarts = require('echarts');
+
 
 import SelectTree from '../component_ui/selectTree';
 import LogData from '../component_data/log';
-import SelectOperation from '../component_ui/SelectOperation';
-import InfoContent from '../component_ui/InfoContent';
+import SelectOperation from '../component_ui/selectOperation';
+import InfoContent from '../component_ui/infoContent';
+import ClassifyPanel from '../component_ui/classifyPanel';
 
 
 const LogPageComponent = component(function LogPage() {
@@ -44,14 +45,13 @@ const LogPageComponent = component(function LogPage() {
       i18nInit('dep');
       $(document.body).css('overflow-y','hidden');
 
-      // initClassifyListen();
-      // getRequestWithTraceIDByTimeRange(loading);
+
       LogData.attachTo('#selectTree');
       SelectTree.attachTo('#selectTree');
       SelectOperation.attachTo(document);
       InfoContent.attachTo(document);
-      this.trigger(document, 'requestLogWithTraceIDByTimeRange',loading);
-
+      ClassifyPanel.attachTo('#classify');
+      this.trigger('requestLogWithTraceIDByTimeRange',loading);
 
     } catch (e) {
       layer.close(loading);

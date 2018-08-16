@@ -49,7 +49,7 @@ const LogPageComponent2 = component(function LogPage2() {
 
 var currentTraceId = 0;
 var selectedTraceId = [];
-var selectedTraceId = [];
+var selectedServices = [];
 var address = 'http://10.141.212.25';
 //var serviceInstanceNames = new Array();
 //var globeTraceLogData = {};
