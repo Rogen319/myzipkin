@@ -26,35 +26,42 @@
 
 
 <div class="row">
-    <div id="dependency-container" class="col-sm-12 col-md-12 col-lg-12">
-      <ul class="list-group pull-right selected-trace" id = "selectedTrace">
-      </ul>
-      <svg width="100%" height="4000" class="rootSvg">
-      </svg>
-    </div>
+  <div id="dependency-container" class="col-sm-12 col-md-12 col-lg-12">
+    <ul class="list-group pull-right selected-trace" id = "selectedTrace">
+    </ul>
+    <svg width="100%" height="4000" class="rootSvg">
+    </svg>
+  </div>
 </div>
 
-<div id="selectTree" >
+<div id="selectTree">
 </div>
+
 <div id="controllTree">
   <button id="controllTreeBtn" class="btn btn-default btn-xs diybtn">隐藏调用链菜单</button>
 </div>
+
 <div class="container table-responsive" id="logVis">
   <table class="table table-hover table-bordered table-condensed col-sm12 col-md-12 col-lg-12">
     <thead id="logHead">
-      <tr>
-        <th>Node</th>
-        <th>Service</th>
-        <th>Instance</th>
-        <th id="sortByURI" class = "handMouse">Uri <i class="fa fa-sort-amount-asc" aria-hidden="true"></i></th>
-        <th>LogType</th>
-        <th id="sortByTime" class = "handMouse">Time <i class="fa fa-sort-amount-asc" aria-hidden="true"></i></th>
-        <th>LogInfo</th>
-      </tr>
+    <tr>
+      <th>Node</th>
+      <th>Service</th>
+      <th>Instance</th>
+      <th id="sortByURI" class = "handMouse">Uri <i class="fa fa-sort-amount-asc" aria-hidden="true"></i></th>
+      <th>LogType</th>
+      <th id="sortByTime" class = "handMouse">Time <i class="fa fa-sort-amount-asc" aria-hidden="true"></i></th>
+      <th>LogInfo</th>
+    </tr>
     </thead>
     <tbody id="logTable">
     </tbody>
   </table>
+</div>
+
+<div class="container" id="errorPieVis">
+  <div class="col-sm-6 col-md-6 col-lg-6" id="errorPie"></div>
+  <div class="col-sm-6 col-md-6 col-lg-6" id="errorBar"></div>
 </div>
 
 <div class="container" id="logEntrance">
@@ -63,5 +70,11 @@
     <li><span class="bg-warning">Exception: <strong id = "exceptionCount">0</strong></span></li>
     <li><span class="bg-success">Normal: <strong id = "normalCount">0</strong></span></li>
     <li class="pull-right"><button class="btn btn-default btn-xs" id="controlLogVis"></button></li>
+  </ul>
+</div>
+
+<div class="container" id="maShiRo">
+  <ul class="nav nav-pills" role="tablist">
+    <li class="pull-right"><button class="btn btn-default btn-xs" id="controlMaShiRo"></button></li>
   </ul>
 </div>

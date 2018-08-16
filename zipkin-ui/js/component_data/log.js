@@ -83,8 +83,6 @@ export default component(function dependency() {
   };
 
   this.getRequestWithTraceIDByTimeRange = function(e, loading){
-    e.preventDefault();
-    e.stopPropagation();
     let time = {};
     let parm = window.location.search;
     if (parm.length > 1){
@@ -104,7 +102,9 @@ export default component(function dependency() {
       contentType: "application/json",
       data: JSON.stringify(time)
     }).done(data => {
-      this.trigger('receiveLogWithTraceIDByTimeRange', {data:data, loading:loading});
+      this.trigger('receiveLogWithTraceIDByTimeRange', data);
+      this.trigger('showErrorPie', data);
+      layer.close(loading);
     }).fail(e => {
       layer.msg('获取调用信息失败',{icon:2});
     });
@@ -119,7 +119,6 @@ export default component(function dependency() {
   });
 
 });
-
 
 
 class globalVarClass{

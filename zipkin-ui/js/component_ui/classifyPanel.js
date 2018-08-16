@@ -3,7 +3,7 @@ import $ from 'jquery';
 import '../../libs/layer/layer';
 import {initialServiceColor, isInArray, } from './publicOperation';
 import echarts from 'echarts';
-// var echarts = require('echarts');
+
 
 export default component(function classify() {
 

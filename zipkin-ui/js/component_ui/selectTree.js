@@ -29,6 +29,8 @@ export default component(function selectTree() {
       rootNode.normalCount = requestTypeList[i].normalCount;
       rootNode.field = 'root';
       rootNode.candidate = true;
+      rootNode.traceTypeList = requestTypeList[i].traceTypeList;
+      rootNode.traceTypeListString = JSON.stringify(requestTypeList[i].traceTypeList);
       rootNode.shade = (rootNode.errorCount /(rootNode.exceptionCount + rootNode.errorCount + rootNode.normalCount)) / 0.2;
       rootNode.isService = false;
       var traceTypeList = requestTypeList[i].traceTypeList;
@@ -43,6 +45,8 @@ export default component(function selectTree() {
           addNode.normalCount = traceTypeList[l].normalCount;
           addNode.field = 'traceType';
           addNode.candidate = true;
+          addNode.traceInfoList = traceTypeList[l].traceInfoList;
+          addNode.traceInfoListString = JSON.stringify(traceTypeList[l].traceInfoList);
           addNode.shade = (addNode.errorCount /(addNode.exceptionCount + addNode.errorCount + addNode.normalCount)) / 0.2;
           addNode.isService = false;
           var traceInfoList = traceTypeList[l].traceInfoList;
@@ -76,7 +80,7 @@ export default component(function selectTree() {
                   allService[k] = leafNode;
                 }
                 secondNode.children = allService;
-                secondNode.serviceList = JSON.stringify(secondNode.children);
+                secondNode.serviceListString = JSON.stringify(secondNode.children);
               }
               allTrace[j] = secondNode;
             }
@@ -296,13 +300,13 @@ export default component(function selectTree() {
     });
   };
 
-  this.render = function(data, loading) {
+  this.render = function(data) {
     const model = {tData:data};
     this.$node.html(traceTreeTemplate({
       contextRoot,
       ...model
     }));
-    layer.close(loading);
+    // layer.close(loading);
     $('#controllTree').show();
     $('#trace-tree').children('li').each(function () {
       $(this).children('a').children('span').tooltip();
@@ -344,8 +348,7 @@ export default component(function selectTree() {
     this.on(document, 'closeAll', this.closeAll);
 
     this.on(document, 'receiveLogWithTraceIDByTimeRange', function(ev, data) {
-      ev.stopPropagation();
-      this.render(this.praseRequestWithTraceID(data.data),data.loading);
+      this.render(this.praseRequestWithTraceID(data));
     });
 
   });

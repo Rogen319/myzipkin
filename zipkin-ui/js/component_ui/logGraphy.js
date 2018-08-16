@@ -117,22 +117,22 @@ export default component(function dependencyGraph() {
 
             $this.hover(() => {
               nodeEl.classList.add('hover');
-              rootSvg.classList.add('dark');
-              getIncidentEdgeElements(d).forEach(el => {
-                el.classList.add('hover-edge');
-              });
-              getAdjacentNodeElements(d).forEach(el => {
-                el.classList.add('hover-light');
-              });
+              // rootSvg.classList.add('dark');
+              // getIncidentEdgeElements(d).forEach(el => {
+              //   el.classList.add('hover-edge');
+              // });
+              // getAdjacentNodeElements(d).forEach(el => {
+              //   el.classList.add('hover-light');
+              // });
             }, () => {
               nodeEl.classList.remove('hover');
-              rootSvg.classList.remove('dark');
-              getIncidentEdgeElements(d).forEach(e => {
-                e.classList.remove('hover-edge');
-              });
-              getAdjacentNodeElements(d).forEach(e => {
-                e.classList.remove('hover-light');
-              });
+              // rootSvg.classList.remove('dark');
+              // getIncidentEdgeElements(d).forEach(e => {
+              //   e.classList.remove('hover-edge');
+              // });
+              // getAdjacentNodeElements(d).forEach(e => {
+              //   e.classList.remove('hover-light');
+              // });
             });
           });
         return svgNodes;

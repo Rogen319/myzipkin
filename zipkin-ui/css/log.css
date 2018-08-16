@@ -67,18 +67,18 @@
 }
 
 /*#logVis table tbody {*/
-  /*display: block;*/
-  /*overflow-y: scroll;*/
+/*display: block;*/
+/*overflow-y: scroll;*/
 /*}*/
 
 /*#logVis table thead, tbody tr {*/
-  /*display: table;*/
-  /*width: 100%;*/
-  /*table-layout: fixed;*/
+/*display: table;*/
+/*width: 100%;*/
+/*table-layout: fixed;*/
 /*}*/
 
 /*#logVis table thead {*/
-  /*width: calc(100% - 1em);*/
+/*width: calc(100% - 1em);*/
 /*}*/
 #logHead {
   position: fixed;
@@ -203,13 +203,38 @@
   top: 150px;
   display: none;
 }
-
+#maShiRo {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  display: none;
+}
 #pieResult {
   width: 500px;
   height: 500px;
 }
+
 #barResult {
   width: 500px;
   height: 500px;
 }
 
+#errorPieVis {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  background-color: #ffffff;
+  overflow-x: hidden;
+  display: none;
+}
+
+#errorPie {
+  width: 500px;
+  height: 400px;
+}
+
+#errorBar {
+  width: 600px;
+  height: 400px;
+  padding-left: 100px;
+}

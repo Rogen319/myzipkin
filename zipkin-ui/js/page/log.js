@@ -6,18 +6,17 @@ import DependencyData from '../component_data/dependency';
 import LogGraphUI from '../component_ui/logGraphy';
 import ServiceDataModal from '../component_ui/serviceDataModal';
 import TimeStampUI from '../component_ui/timeStamp';
-import GoToLogUI from '../component_ui/goToLog';
-import {logTemplate} from '../templates';
 import {i18nInit} from '../component_ui/i18n';
+import GoToLogUI from '../component_ui/goToLog';
+
 import '../../libs/layer/layer';
-
-
+import {logTemplate} from '../templates';
 import SelectTree from '../component_ui/selectTree';
 import LogData from '../component_data/log';
 import SelectOperation from '../component_ui/selectOperation';
 import InfoContent from '../component_ui/infoContent';
 import ClassifyPanel from '../component_ui/classifyPanel';
-
+import ErrorPanel from '../component_ui/errorPanel';
 
 const LogPageComponent = component(function LogPage() {
   this.after('initialize', function() {
@@ -51,6 +50,7 @@ const LogPageComponent = component(function LogPage() {
       SelectOperation.attachTo(document);
       InfoContent.attachTo(document);
       ClassifyPanel.attachTo('#classify');
+      ErrorPanel.attachTo(document);
       this.trigger('requestLogWithTraceIDByTimeRange',loading);
 
     } catch (e) {
