@@ -203,7 +203,12 @@
   top: 150px;
   display: none;
 }
-
+#maShiRo {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  display: none;
+}
 #pieResult {
   width: 500px;
   height: 500px;
@@ -231,4 +236,5 @@
 #errorBar {
   width: 600px;
   height: 400px;
+  padding-left: 100px;
 }

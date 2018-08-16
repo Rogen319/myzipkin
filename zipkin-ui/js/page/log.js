@@ -92,18 +92,45 @@ function showErrorPie(data) {
   if(data.requestWithTraceInfoList.length > 0){
     $('#errorPieVis').css('height', window.screen.height * 0.4 + 'px');
     $('#selectTree').css('height', window.screen.height * 0.39 + 'px');
-    initPie(data.requestWithTraceInfoList);
-    initVerticalBar(data.requestWithTraceInfoList);
+    $('#maShiRo').css('bottom', window.screen.height * 0.4 + 'px');
+    $('#maShiRo').show();
+    initControlMaShiRo();
+    initPie(data.requestWithTraceInfoList,1);
+    initVerticalBar(data.requestWithTraceInfoList,1);
     $('#errorPieVis').show();
   }
 }
 
-function initPie(data) {
+function initControlMaShiRo() {
+  var showMaShiRo = false;
+  $('#controlMaShiRo').html('隐藏错误率分析');
+  $('#controlMaShiRo').bind('click',function () {
+    if(showMaShiRo){
+      $('#errorPieVis').css('height', window.screen.height * 0.4 + 'px');
+      $('#maShiRo').css('bottom', window.screen.height * 0.4 + 'px');
+      $(this).html('隐藏错误率分析');
+      showMaShiRo = false;
+    }
+    else{
+      $('#errorPieVis').css('height', '0');
+      $('#maShiRo').css('bottom', '0');
+      $(this).html('显示错误率分析');
+      showMaShiRo = true;
+    }
+  });
+}
+
+function initPie(data,type) {
   let errorPie = echarts.init(document.getElementById('errorPie'));
   let pieData = [];
   let typeName = [];
   for(let i = 0; i < data.length; i++){
-    typeName[i] = data[i].requestType;
+    if(type == 1){
+      typeName[i] = data[i].requestType;
+    }
+    else if(type == 2){
+      typeName[i] = data[i].typeName;
+    }
     let dataItem = {};
     dataItem.value = ((data[i].errorCount / (data[i].errorCount + data[i].exceptionCount + data[i].normalCount)) * 100).toFixed(2);
     dataItem.name = typeName[i];
@@ -143,14 +170,27 @@ function initPie(data) {
     ]
   };
   errorPie.setOption(options);
+
+  if(type === 1){
+    errorPie.on('click', function (params) {
+      locateRequestTypeInSelectTree(params.data.name);
+      initPie(data[params.dataIndex].traceTypeList,2);
+      $('#errorBar').html('');
+    });
+  }
 }
 
-function initVerticalBar(data) {
+function initVerticalBar(data,type) {
   let errorBar = echarts.init(document.getElementById('errorBar'));
   let barData = [];
   let typeName = [];
   for(let i = 0; i < data.length; i++){
-    typeName[i] = data[i].requestType;
+    if(type == 1){
+      typeName[i] = data[i].requestType;
+    }
+    else if(type == 2){
+      typeName[i] = data[i].typeName;
+    }
     let dataItem = {};
     dataItem.value = ((data[i].errorCount / (data[i].errorCount + data[i].exceptionCount + data[i].normalCount)) * 100).toFixed(2);
     dataItem.name = typeName[i];
@@ -168,6 +208,9 @@ function initVerticalBar(data) {
       axisPointer: {
         type: 'shadow'
       }
+    },
+    grid: {
+      left: '22%'
     },
     legend: {
       data: typeName
@@ -250,17 +293,24 @@ function loadTree(tData) {
       title.attr('data-toggle', 'tooltip').attr('data-placement', 'right').attr('title', 'Error:' + tData[i].errorCount + ' Exception:' + tData[i].exceptionCount +" Normal:"+tData[i].normalCount);
     else
       title.attr('data-toggle', 'tooltip').attr('data-placement', 'bottom').attr('title', 'Error:' + tData[i].errorCount + ' Exception:' + tData[i].exceptionCount +" Normal:"+tData[i].normalCount);
-      let shade = (tData[i].errorCount /(tData[i].exceptionCount + tData[i].errorCount + tData[i].normalCount)) / 0.2;
-      node.css('background-color','rgba(242,222,222,'+ shade +')');
-      node.hover(function () {
-        node.css('background-color','#cccccc');
-      },function () {
+    let shade = (tData[i].errorCount /(tData[i].exceptionCount + tData[i].errorCount + tData[i].normalCount)) / 0.2;
+    node.css('background-color','rgba(242,222,222,'+ shade +')');
+    node.hover(function () {
+      node.css('background-color','#cccccc');
+      },
+      function () {
         node.css('background-color','rgba(242,222,222,'+ shade +')');
       });
-      $('<div></div>').addClass('shade').html(shade).css('display','none').appendTo(node);
-    // }
-    if (tData[i].field === 'trace') {
+    $('<div></div>').addClass('shade').html(shade).css('display','none').appendTo(node);
+
+    if (tData[i].field === 'traceType') {
+      $('<div></div>').addClass('traceInfoList').html(tData[i].traceInfoList).css('display', 'none').appendTo(node);
+    }
+    else if (tData[i].field === 'trace') {
       $('<div></div>').addClass('serviceList').html(JSON.stringify(tData[i].children)).css('display', 'none').appendTo(node);
+    }
+    else if (tData[i].field === 'root') {
+      $('<div></div>').addClass('traceTypeList').html(JSON.stringify(tData[i].traceTypeList)).css('display', 'none').appendTo(node);
     }
       // 处理有子节点的
     if (tData[i].children != undefined) {
@@ -344,6 +394,9 @@ function nodeClick(box) {
           $(this).find('.status').removeClass('fa-minus-square-o').addClass('fa-plus-square-o');
         }
       });
+
+      initPie(JSON.parse($.trim($(this).find('.traceTypeList').html())),2);
+      $('#errorBar').html('');
     }
     // 判断是不是调用链
     if ($.trim($(this).find('.field').html()) === 'trace') {
@@ -548,6 +601,20 @@ function locateTraceInSelectTree() {
   nodeList[0].prev().css({'background-color': '#777777', 'color': '#FFFFFF'});
 }
 
+function locateRequestTypeInSelectTree(requestTypeName) {
+  $('#selectTree').find('.tree-node').each(function () {
+    if ($.trim($(this).find('.field').html()) === 'root' && $.trim($(this).find('.title').html()) == requestTypeName){
+      $(this).css('color', '');
+      $(this).css('background-color','rgba(242,222,222,'+ $.trim($(this).find('.shade').html()) +')');
+      $(this).next().slideDown(500,function () {
+        $(this).children('[data-toggle="tooltip"]').tooltip('show');
+      });
+      $(this).find('.open').val('true');
+      $(this).find('.status').removeClass('fa-plus-square-o').addClass('fa-minus-square-o');
+    }
+  });
+}
+
 function closeAll() {
   $('#selectTree').find('.tree-node').each(function () {
     if ($.trim($(this).find('.field').html()) === 'root'){
@@ -583,6 +650,7 @@ function praseRequestWithTraceID(requestWithTraceID) {
     rootNode.exceptionCount = requestTypeList[i].exceptionCount;
     rootNode.normalCount = requestTypeList[i].normalCount;
     rootNode.field = 'root';
+    rootNode.traceTypeList = requestTypeList[i].traceTypeList;
     rootNode.candidate = true;
     var traceTypeList = requestTypeList[i].traceTypeList;
     if(traceTypeList.length > 0){
@@ -596,6 +664,7 @@ function praseRequestWithTraceID(requestWithTraceID) {
         addNode.normalCount = traceTypeList[l].normalCount;
         addNode.field = 'traceType';
         addNode.candidate = true;
+        addNode.traceInfoList = traceTypeList[l].traceInfoList;
         var traceInfoList = traceTypeList[l].traceInfoList;
         if (traceInfoList.length > 0) {
           addNode.open = false;
@@ -762,6 +831,8 @@ function initLogVis(traceLog,loading) {
   }
 
   if(logs.length > 0) {
+    $('#maShiRo').hide();
+    $('#errorPieVis').hide();
     $('#logVis').css('height', window.screen.height * 0.3 + 'px');
     $('#selectTree').css('height', window.screen.height * 0.39 + 'px');
     $('#errorCount').html(traceLog.errorCount);
