@@ -16,7 +16,8 @@ import LogData from '../component_data/log';
 import SelectOperation from '../component_ui/selectOperation';
 import InfoContent from '../component_ui/infoContent';
 import ClassifyPanel from '../component_ui/classifyPanel';
-import ErrorPanel from '../component_ui/errorPanel';
+import ErrorRatePanel from '../component_ui/errorRatePanel';
+import TraceLogTable from '../component_ui/traceLogTable';
 
 const LogPageComponent = component(function LogPage() {
   this.after('initialize', function() {
@@ -45,12 +46,13 @@ const LogPageComponent = component(function LogPage() {
       $(document.body).css('overflow-y','hidden');
 
 
-      LogData.attachTo('#selectTree');
       SelectTree.attachTo('#selectTree');
-      SelectOperation.attachTo(document);
+      TraceLogTable.attachTo('#traceLogTable');
+      ErrorRatePanel.attachTo('#errorRatePanel');
       InfoContent.attachTo(document);
       ClassifyPanel.attachTo('#classify');
-      ErrorPanel.attachTo('#errorPieVis');
+      SelectOperation.attachTo(document);
+      LogData.attachTo(document);
       this.trigger('requestLogWithTraceIDByTimeRange',loading);
 
     } catch (e) {

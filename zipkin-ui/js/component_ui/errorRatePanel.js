@@ -2,10 +2,44 @@ import {component} from 'flightjs';
 import $ from 'jquery';
 import '../../libs/layer/layer';
 import echarts from 'echarts';
+import {errorRatePanelTemplate} from "../templates";
+import {contextRoot} from "../publicPath";
 
 export default component(function errorRate() {
 
-  this.showErrorPie = function(e, data) {
+  var showMaShiRo = false;
+  var rawData;
+
+  this.closeErrorPanel = function(){
+    $('#errorPieVis').css('height', '0');
+    $('#maShiRo').css('bottom', '0');
+    $('#controlMaShiRo').html('显示错误率分析');
+    $('#returnLastLevel').css('display','none');
+    showMaShiRo = true;
+  };
+
+  this.initControlMaShiRo = function() {
+    $('#controlMaShiRo').html('隐藏错误率分析');
+    $('#controlMaShiRo').bind('click',function () {
+      if(showMaShiRo){
+        $('#errorPieVis').css('height', window.screen.height * 0.4 + 'px');
+        $('#maShiRo').css('bottom', window.screen.height * 0.4 + 'px');
+        $('#returnLastLevel').css('display','block');
+        $(this).html('隐藏错误率分析');
+        showMaShiRo = false;
+      }
+      else{
+        $('#errorPieVis').css('height', '0');
+        $('#maShiRo').css('bottom', '0');
+        $('#returnLastLevel').css('display','none');
+        $(this).html('显示错误率分析');
+        showMaShiRo = true;
+      }
+    });
+  };
+
+  this.showErrorPie = function(data) {
+    rawData = data.requestWithTraceInfoList;
     if(data.requestWithTraceInfoList.length > 0){
       $('#errorPieVis').css('height', window.screen.height * 0.4 + 'px');
       $('#selectTree').css('height', window.screen.height * 0.39 + 'px');
@@ -15,27 +49,20 @@ export default component(function errorRate() {
       this.initPie(data.requestWithTraceInfoList,1);
       this.initVerticalBar(data.requestWithTraceInfoList,1);
       $('#errorPieVis').show();
+      $('#returnLastLevel').on('click', function(){
+         $(this).trigger('returnLastLevel');
+      });
     }
   };
 
-  this.initControlMaShiRo = function() {
-    var showMaShiRo = false;
-    $('#controlMaShiRo').html('隐藏错误率分析');
-    $('#controlMaShiRo').bind('click',function () {
-      if(showMaShiRo){
-        $('#errorPieVis').css('height', window.screen.height * 0.4 + 'px');
-        $('#maShiRo').css('bottom', window.screen.height * 0.4 + 'px');
-        $(this).html('隐藏错误率分析');
-        showMaShiRo = false;
-      }
-      else{
-        $('#errorPieVis').css('height', '0');
-        $('#maShiRo').css('bottom', '0');
-        $(this).html('显示错误率分析');
-        showMaShiRo = true;
-      }
-    });
+  //返回上一级的错误率图
+  this.returnLastLevel = function(){
+    $('#errorPie').trigger('closeAll');
+    $('#errorPie').trigger('initPie', {data:rawData, type:1});
+    $('#errorPie').trigger('initVerticalBar', {data:rawData, type:1});
+    $('#errorBar').show();
   };
+
 
   this.initP = function(e, d){
     this.initPie(d.data, d.type);
@@ -63,7 +90,7 @@ export default component(function errorRate() {
       pieData[i] = dataItem;
     }
     let options = {
-      backgroundColor: 'white',
+      backgroundColor: 'rgba(0,0,0,0)',
       title: {
         text: '错误率分布图',
         left: 'center',
@@ -93,12 +120,23 @@ export default component(function errorRate() {
     errorPie.setOption(options);
 
     if(type === 1){
+      $('#returnLastLevel').hide();
       errorPie.on('click', function (params) {
         $('#errorPie').trigger('locateRequestTypeInSelectTree', params.data.name);
-        $('#errorPie').trigger('initPie', {data:data[params.dataIndex].traceTypeList, type:2});
-        $('#errorBar').html('');
+        $('#errorPie').trigger('initPie', {data:rawData[params.dataIndex].traceTypeList, type:2});
+        $('#errorBar').hide();
+        // $('#errorBar').html('');
       });
     }
+
+    if(type == 2){
+      $('#returnLastLevel').show();
+    }
+
+  };
+
+  this.initV = function(e, d){
+    this.initVerticalBar(d.data, d.type);
   };
 
   this.initVerticalBar = function (data,type) {
@@ -168,10 +206,19 @@ export default component(function errorRate() {
     });
   };
 
+
   this.after('initialize', function afterInitialize() {
-    this.on(document, 'showErrorPie', this.showErrorPie);
-    this.on( 'locateRequestTypeInSelectTree', this.locateRequestTypeInSelectTree);
-    this.on( 'initPie', this.initP);
+    this.on(document, 'showErrorPie', function (e, data){
+      this.$node.html(errorRatePanelTemplate({
+        contextRoot
+      }));
+      this.showErrorPie(data);
+    });
+    this.on( document,'locateRequestTypeInSelectTree', this.locateRequestTypeInSelectTree);
+    this.on( document,'initPie', this.initP);
+    this.on( document,'initVerticalBar', this.initV);
+    this.on( document, 'closeErrorPanel', this.closeErrorPanel);
+    this.on( document, 'returnLastLevel', this.returnLastLevel);
   })
 
 })

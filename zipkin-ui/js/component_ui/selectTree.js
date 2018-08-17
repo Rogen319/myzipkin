@@ -124,6 +124,11 @@ export default component(function selectTree() {
         });
         $(this).find('.open').val('false');
         $(this).find('.status').removeClass('fa-minus-square-o').addClass('fa-plus-square-o');
+
+        //图表联动
+        if($.trim($(this).find('.field').html()) === 'root'){
+          $(this).trigger('returnLastLevel');
+        }
       }
       else {
         // 开启前关闭节点下的所有节点
@@ -143,6 +148,15 @@ export default component(function selectTree() {
             $(this).children('a').children('span').tooltip();
           });
         });
+
+        //图表联动
+        if($.trim($(this).find('.field').html()) === 'root'){
+          $(this).trigger('initPie',{data:JSON.parse($.trim($(this).find('.traceTypeList').html())), type:2});
+          // initPie(JSON.parse($.trim($(this).find('.traceTypeList').html())),2);
+          $('#errorBar').hide();
+          // $('#errorBar').html('');
+        }
+
       }
       if ($.trim($(this).find('.field').html()) === 'root'){
         let t = $.trim($(this).find('.title').html());
@@ -168,6 +182,7 @@ export default component(function selectTree() {
             $(this).find('.status').removeClass('fa-minus-square-o').addClass('fa-plus-square-o');
           }
         });
+
       }
       // 判断是不是调用链
       if ($.trim($(this).find('.field').html()) === 'trace') {
@@ -267,53 +282,19 @@ export default component(function selectTree() {
     });
   };
 
-  this.initSortClick = function(){
-    $('#sortByURI').bind('click',function () {
-      if(globalVar.getCurrentSort() == 0){
-        $(this).children('i').hide();
-        $('#sortByTime').children('i').show();
-        globalVar.setCurrentSort(1);
-        const loading = layer.load(2,{
-          shade: 0.3,
-          scrollbar: false,
-          zIndex: 20000000
-        });
-        $(this).trigger('getLogByTraceID',
-          {traceId:globalVar.getSelectedTraceId()[globalVar.getCurrentTraceId()],type:globalVar.getCurrentSort(),loading:loading});
-        // LogData.getLogByTraceID(globalVar.getSelectedTraceId()[globalVar.getCurrentTraceId()],globalVar.getCurrentSort(),loading);
-      }
-    });
-    $('#sortByTime').bind('click',function () {
-      if(globalVar.getCurrentSort() === 1){
-        $(this).children('i').hide();
-        $('#sortByURI').children('i').show();
-        globalVar.setCurrentSort(0);
-        const loading = layer.load(2,{
-          shade: 0.3,
-          scrollbar: false,
-          zIndex: 20000000
-        });
-        $(this).trigger('getLogByTraceID',
-          {traceId:globalVar.getSelectedTraceId()[globalVar.getCurrentTraceId()],type:globalVar.getCurrentSort(),loading:loading});
-        // LogData.getLogByTraceID(globalVar.getSelectedTraceId()[globalVar.getCurrentTraceId()],globalVar.getCurrentSort(),loading);
-      }
-    });
-  };
-
   this.render = function(data) {
     const model = {tData:data};
     this.$node.html(traceTreeTemplate({
       contextRoot,
       ...model
     }));
-    // layer.close(loading);
     $('#controllTree').show();
     $('#trace-tree').children('li').each(function () {
       $(this).children('a').children('span').tooltip();
     });
     this.trigger('closeAll');
     this.nodeClick($('#trace-tree'));
-    this.initSortClick();
+    // this.initSortClick();
     this.initControlTree();
   };
 

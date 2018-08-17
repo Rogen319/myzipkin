@@ -6,3 +6,5 @@ export const traceTemplate = require('../templates/trace.mustache');
 export const traceViewerTemplate = require('../templates/traceViewer.mustache');
 export const logTemplate = require('../templates/log.mustache');
 export const traceTreeTemplate = require('../templates/traceTree.mustache');
+export const errorRatePanelTemplate = require('../templates/errorRatePanel.mustache');
+export const traceLogTableTemplate = require('../templates/traceLogTable.mustache');

@@ -142,6 +142,7 @@ export default component(function select() {
         '共同Service'+
         '        </li>';
     }
+
     $('#selectedTrace').html(html);
 
     $('#selectedTrace').children('li').each(function (i) {
@@ -182,8 +183,10 @@ export default component(function select() {
         else
           $(this).find('.color-box').css('background-color','#ADFF2F');
       }
-      else
-        $(this).find('.color-box').css('background-color','#1E90FF');
+      else {
+        $(this).find('.color-box').css('background-color', '#1E90FF');
+      }
+
     });
   };
 
@@ -198,8 +201,6 @@ export default component(function select() {
       this.highlightServices();
       this.initServiceClick();
       this.showNoticeWindow();
-      $('#sortByURI').children('i').hide();
-      $('#sortByTime').children('i').show();
       const loading = layer.load(2,{
         shade: 0.3,
         scrollbar: false,

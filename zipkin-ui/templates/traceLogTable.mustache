@@ -1,0 +1,58 @@
+<div class="container" id="logEntrance">
+  <ul class="nav nav-pills" role="tablist">
+    <li><span class="bg-danger">Error: <strong id = "errorCount">0</strong></span></li>
+    <li><span class="bg-warning">Exception: <strong id = "exceptionCount">0</strong></span></li>
+    <li><span class="bg-success">Normal: <strong id = "normalCount">0</strong></span></li>
+  </ul>
+</div>
+
+
+<div class="container table-responsive" id="logVis">
+  <table class="table table-hover table-bordered table-condensed col-sm12 col-md-12 col-lg-12">
+    <thead id="logHead">
+    <tr>
+      <th>Node</th>
+      <th>Service</th>
+      <th>Instance</th>
+      <th id="sortByURI" class = "handMouse">Uri <i class="fa fa-sort-amount-asc" aria-hidden="true"></i></th>
+      <th>LogType</th>
+      <th id="sortByTime" class = "handMouse">Time <i class="fa fa-sort-amount-asc" aria-hidden="true"></i></th>
+      <th>LogInfo</th>
+    </tr>
+    </thead>
+    <tbody id="logTable">
+      {{#logs}}
+      <tr>
+        <td class = "col-sm-1 col-md-1">
+          <button class="btn btn-default nodeBtn">
+            {{serviceInfo.node.name}}
+            <div class = "nodeInfo">{{serviceInfo.nodeString}}</div>
+          </button>
+        </td>
+
+        <td class = "col-sm-1 col-md-1">{{serviceInfo.serviceName}}</td>
+
+        <td class = "col-sm-2 col-md-2">
+          <button class="btn btn-default serviceInstanceBtn">
+            {{serviceInfo.instanceInfo.instanceName}}
+            <div class = "serviceInstanceInfo">{{serviceInfo.instanceInfoString}}</div>
+          </button>
+        </td>
+
+        <td class = "col-sm-1 col-md-1">{{uri}}</td>
+        <td class = "col-sm-1 col-md-1">{{logType}}</td>
+        <td class = "col-sm-1 col-md-1" style="text-align: left">{{timestamp}}</td>
+        {{#isDanger}}
+          <td class = "col-sm-5 col-md-5 bg-danger" style="text-align: left">{{logInfo}}</td>
+        {{/isDanger}}
+        {{#isWarning}}
+          <td class = "col-sm-5 col-md-5 bg-warning" style="text-align: left">{{logInfo}}</td>
+        {{/isWarning}}
+         {{#isNormal}}
+           <td class = "col-sm-5 col-md-5" style="text-align: left">{{logInfo}}</td>
+         {{/isNormal}}
+      </tr>
+      {{/logs}}
+    </tbody>
+  </table>
+</div>

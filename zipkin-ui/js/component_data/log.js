@@ -19,6 +19,7 @@ export default component(function dependency() {
       contentType: "application/json"
     }).done(data => {
       this.trigger('initLogVis', {data:data,loading:loading});
+      this.trigger('closeErrorPanel');
     }).fail(e => {
       layer.msg('获取调用链日志失败',{icon:2});
     });
@@ -127,7 +128,6 @@ class globalVarClass{
     this.currentTraceId = 0;
     this.selectedTraceId = [];
     this.selectedServices = [];
-    this.currentSort = 1;
   }
   getCurrentTraceId(){
     return this.currentTraceId;
@@ -147,12 +147,7 @@ class globalVarClass{
   setSelectedServices(index, t){
     this.selectedServices[index] = t;
   }
-  getCurrentSort(){
-    return this.currentSort;
-  }
-  setCurrentSort(i){
-    this.currentSort = i;
-  }
+
 }
 
 export const globalVar = new globalVarClass();
