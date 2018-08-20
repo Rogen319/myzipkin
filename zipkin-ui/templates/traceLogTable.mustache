@@ -6,6 +6,14 @@
   </ul>
 </div>
 
+<div class="container">
+  <form id="log-search-form" class="form-inline"
+        style="background-color: #f5f5f5;padding:10px;float: left">
+    <label for="classifyNumber">Log关键词搜索：</label>
+    <input class="form-control input-sm" type="text" id="search-key">
+    <button class="btn btn-sm" id="log-search">搜索</button>
+  </form>
+</div>
 
 <div class="container table-responsive" id="logVis">
   <table class="table table-hover table-bordered table-condensed col-sm12 col-md-12 col-lg-12">
@@ -49,7 +57,7 @@
           <td class = "col-sm-5 col-md-5 bg-warning" style="text-align: left">{{logInfo}}</td>
         {{/isWarning}}
          {{#isNormal}}
-           <td class = "col-sm-5 col-md-5" style="text-align: left">{{logInfo}}</td>
+           <td class = "col-sm-5 col-md-5 loginfo" style="text-align: left">{{logInfo}}</td>
          {{/isNormal}}
       </tr>
       {{/logs}}

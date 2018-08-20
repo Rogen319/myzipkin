@@ -33,6 +33,8 @@ export default component(function selectTree() {
       rootNode.traceTypeListString = JSON.stringify(requestTypeList[i].traceTypeList);
       rootNode.shade = (rootNode.errorCount /(rootNode.exceptionCount + rootNode.errorCount + rootNode.normalCount)) / 0.2;
       rootNode.isService = false;
+      rootNode.normalTraceCount = requestTypeList[i].normalTraceCount;
+      rootNode.errorTraceCount = requestTypeList[i].errorTraceCount;
       var traceTypeList = requestTypeList[i].traceTypeList;
       if(traceTypeList.length > 0){
         rootNode.open = false;
@@ -49,8 +51,10 @@ export default component(function selectTree() {
           addNode.traceInfoListString = JSON.stringify(traceTypeList[l].traceInfoList);
           addNode.shade = (addNode.errorCount /(addNode.exceptionCount + addNode.errorCount + addNode.normalCount)) / 0.2;
           addNode.isService = false;
+          addNode.normalTraceCount = traceTypeList[l].normalTraceCount;
+          addNode.errorTraceCount = traceTypeList[l].errorTraceCount;
           var traceInfoList = traceTypeList[l].traceInfoList;
-          if (traceInfoList.length > 0) {
+          if (traceInfoList.length > 0){
             addNode.open = false;
             var allTrace = [];
             for (var j = 0; j < traceInfoList.length; j++) {
@@ -149,12 +153,24 @@ export default component(function selectTree() {
           });
         });
 
-        //图表联动
+
         if($.trim($(this).find('.field').html()) === 'root'){
+          //图表联动
           $(this).trigger('initPie',{data:JSON.parse($.trim($(this).find('.traceTypeList').html())), type:2});
           // initPie(JSON.parse($.trim($(this).find('.traceTypeList').html())),2);
           $('#errorBar').hide();
           // $('#errorBar').html('');
+
+          //显示service错误率，改变边框粗细
+          $(this).trigger('getServiceWithTraceCountByRequestType',$.trim($(this).find('.title').html()));
+        }
+
+        if($.trim($(this).find('.field').html()) === 'traceType'){
+            //显示service错误率，改变边框粗细
+          let requestType = $.trim($(this).find('.title').html());
+          requestType = requestType.split('-')[0];
+          let traceInfoList = JSON.parse($.trim($(this).find('.traceInfoList').html()));
+          $(this).trigger('getServiceWithTraceCountByTraceType',{requestType:requestType, services:traceInfoList[0].serviceList});
         }
 
       }
@@ -207,16 +223,12 @@ export default component(function selectTree() {
           }
           else{
             if(globalVar.getCurrentTraceId() == 0){
-              // globalVar.getSelectedTraceId()[1] = t;
               globalVar.setSelectedTraceId(1, t);
-              // globalVar.getSelectedServices()[1] = allServiceName;
               globalVar.setSelectedServices(1, allServiceName);
               globalVar.setCurrentTraceId(1) ;
             }
             else{
-              // globalVar.getSelectedTraceId()[0] = t;
               globalVar.setSelectedTraceId(0, t);
-              // globalVar.getSelectedServices()[0] = allServiceName;
               globalVar.setSelectedServices(0, allServiceName);
               globalVar.setCurrentTraceId(0) ;
             }
@@ -224,17 +236,13 @@ export default component(function selectTree() {
         }
         else if(globalVar.getSelectedTraceId().length === 1){
           if(globalVar.getSelectedTraceId()[0] !== t){
-            // globalVar.getSelectedTraceId()[1] = t;
             globalVar.setSelectedTraceId(1, t);
-            // globalVar.getSelectedServices()[1] = allServiceName;
             globalVar.setSelectedServices(1, allServiceName);
             globalVar.setCurrentTraceId(1);
           }
         }
         else {
-          // globalVar.getSelectedTraceId()[0] = t;
           globalVar.setSelectedTraceId(0, t);
-          // globalVar.getSelectedServices()[0] = allServiceName;
           globalVar.setSelectedServices(0, allServiceName);
           globalVar.setCurrentTraceId(0);
         }
@@ -257,7 +265,6 @@ export default component(function selectTree() {
         });
         if ($.trim($(this).find('.open').val()) === 'true') {
           $(this).trigger('hightLightAndShowLog');
-          // hightLightAndShowLog();
         }
       }
       else if ($.trim($(this).find('.field').html()) === 'service') {
@@ -296,6 +303,7 @@ export default component(function selectTree() {
     this.nodeClick($('#trace-tree'));
     // this.initSortClick();
     this.initControlTree();
+
   };
 
   this.closeAll = function() {
@@ -328,8 +336,11 @@ export default component(function selectTree() {
 
     this.on(document, 'closeAll', this.closeAll);
 
-    this.on(document, 'receiveLogWithTraceIDByTimeRange', function(ev, data) {
+    this.on(document, 'receiveRequestWithTraceIDByTimeRange', function(ev, data) {
       this.render(this.praseRequestWithTraceID(data));
+      if(data.status){
+        this.trigger('renderServiceBorder',{list: data.serviceWithTraceStatusCountList});
+      }
     });
 
   });

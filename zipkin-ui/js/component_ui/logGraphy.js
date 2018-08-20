@@ -184,6 +184,8 @@ export default component(function dependencyGraph() {
       renderer
         .layout(layout)
         .run(g, svgGroup);
+
+      this.trigger(document, 'requestLogWithTraceIDByTimeRange');
     });
   });
 });

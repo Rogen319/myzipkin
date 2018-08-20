@@ -53,7 +53,11 @@ const LogPageComponent = component(function LogPage() {
       ClassifyPanel.attachTo('#classify');
       SelectOperation.attachTo(document);
       LogData.attachTo(document);
-      this.trigger('requestLogWithTraceIDByTimeRange',loading);
+      // this.trigger('requestLogWithTraceIDByTimeRange',loading);
+
+      this.on(document, 'closeLoading', function(){
+        layer.close(loading);
+      });
 
     } catch (e) {
       layer.close(loading);

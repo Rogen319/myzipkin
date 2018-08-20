@@ -190,12 +190,47 @@ export default component(function select() {
     });
   };
 
+  //////////////// 显示service错误率，改变边框粗细 //////////////////////////////
+
+  this.cleanAllServiceBorder = function(){
+    let nodes = document.getElementsByClassName('node enter');
+    for (let i = 0; i < nodes.length; i++) {
+      let node = nodes[i].getElementsByTagName('rect')[0];
+      // node.style.stroke = "#333";
+      // node.style.strokeWidth = "1px";
+      node.setAttribute('fill', '#fff');
+    }
+  };
+
+  this.renderServiceBorder = function(e, data){
+    this.cleanAllServiceBorder();
+    const list = data.list || [];
+    list.forEach(function(service){
+        if(service.errorTraceCount > 0){
+          let temp = "[data-node='"+service.serviceName+"']";
+          let node = $(temp);
+          if(node[0]){
+            node = $(temp)[0].childNodes[0];
+            // let strokeWidth = 5 * service.errorTraceCount / (service.errorTraceCount + service.normalTraceCount);
+            // node.style.stroke = "#CC0000";
+            // node.style.strokeWidth = strokeWidth + "px";
+
+            let r = 200 + 50 * (service.normalTraceCount / (service.errorTraceCount + service.normalTraceCount));
+            node.setAttribute('fill', "rgb("+r+",0, 0)");
+            let alpha = 0.5 + 0.5 * service.errorTraceCount / (service.errorTraceCount + service.normalTraceCount);
+            node.style.opacity = alpha;
+          }
+        }
+    })
+  };
+
   /////////////////////////////////////////////////////////////
 
   this.after('initialize', function afterInitialize() {
 
     this.on(document, 'locateTraceInSelectTree', this.locateTraceInSelectTree);
     this.on(document, 'highlightServices', this.highlightServices);
+    this.on(document, 'renderServiceBorder', this.renderServiceBorder);
 
     this.on(document, 'hightLightAndShowLog', function() {
       this.highlightServices();

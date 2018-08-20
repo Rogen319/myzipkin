@@ -9,10 +9,10 @@
             <i style="margin-right: 5px" class="fa fa-plus-square-o status"></i>
           {{/open}}
           {{#isService}}
-            <span class="title" data-toggle="tooltip" data-placement="bottom" title="Error:{{errorCount}}  Exception:{{exceptionCount}} Normal:{{normalCount}}">{{title}}</span>
+            <span class="title" data-toggle="tooltip" data-placement="bottom" title="ErrorTrace:{{errorTraceCount}}  NormalTrace:{{normalTraceCount}}">{{title}}</span>
           {{/isService}}
           {{^isService}}
-            <span class="title" data-toggle="tooltip" data-placement="right" title="Error:{{errorCount}}  Exception:{{exceptionCount}} Normal:{{normalCount}}">{{title}}</span>
+            <span class="title" data-toggle="tooltip" data-placement="right" title="ErrorTrace:{{errorTraceCount}}  NormalTrace:{{normalTraceCount}}">{{title}}</span>
           {{/isService}}
           <div class="field" style="display: none" >{{field}}</div>
           <div class="shade" style="display: none">{{shade}}</div>
@@ -30,10 +30,10 @@
                   <i style="margin-right: 5px" class="fa fa-plus-square-o status"></i>
                 {{/open}}
                 {{#isService}}
-                  <span class="title" data-toggle="tooltip" data-placement="bottom" title="Error:{{errorCount}}  Exception:{{exceptionCount}} Normal:{{normalCount}}">{{title}}</span>
+                  <span class="title" data-toggle="tooltip" data-placement="bottom" title="ErrorTrace:{{errorTraceCount}}  NormalTrace:{{normalTraceCount}}">{{title}}</span>
                 {{/isService}}
                 {{^isService}}
-                  <span class="title" data-toggle="tooltip" data-placement="right" title="Error:{{errorCount}}  Exception:{{exceptionCount}} Normal:{{normalCount}}">{{title}}</span>
+                  <span class="title" data-toggle="tooltip" data-placement="right" title="ErrorTrace:{{errorTraceCount}}  NormalTrace:{{normalTraceCount}}">{{title}}</span>
                 {{/isService}}
                 <div class="field" style="display: none" >{{field}}</div>
                 <div class="shade" style="display: none">{{shade}}</div>

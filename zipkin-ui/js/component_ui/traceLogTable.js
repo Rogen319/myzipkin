@@ -9,6 +9,7 @@ export default component(function traceLog() {
 
   var showLogVis = false;
   var currentSort = 1;
+  var traceLog;
 
   this.initControlLogVis = function () {
     $('#traceLogTable').show();
@@ -16,18 +17,18 @@ export default component(function traceLog() {
     $('#controlLogVis').html('隐藏调用链日志');
     $('#controlLogVis').unbind('click');
     $('#controlLogVis').on('click',function () {
-      console.log("showLogVis...");
-      console.log(showLogVis);
       if(showLogVis){
         $('#logVis').css('height', window.screen.height * 0.3 + 'px');
         $('#logEntrance').css('bottom', window.screen.height * 0.3 + 'px');
         $(this).html('隐藏调用链日志');
+        $('#log-search-form').css('display','block');
         showLogVis = false;
       }
       else{
         $('#logVis').css('height', '0');
         $('#logEntrance').css('bottom', '0');
         $(this).html('显示调用链日志');
+        $('#log-search-form').css('display','none');
         showLogVis = true;
       }
     })
@@ -185,7 +186,6 @@ export default component(function traceLog() {
     // }
   };
 
-
   this.render = function(traceLog) {
     const model = traceLog;
     this.$node.html(traceLogTableTemplate({
@@ -195,17 +195,44 @@ export default component(function traceLog() {
     $('#errorCount').html(traceLog.errorCount);
     $('#exceptionCount').html(traceLog.exceptionCount);
     $('#normalCount').html(traceLog.normalCount);
+    this.initLogVis();
+    this.initSortClick();
+    this.initLogSearch();
+  };
+
+  this.initLogSearch = function(){
+    $('#log-search').bind('click',function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      let key = $('#search-key').val();
+      if(key == ""){
+        $(this).trigger('renderTraceLogTable', traceLog);
+      } else {
+        let temp = {logs:[]};
+        for (let i = 0;i < traceLog.logs.length;i++) {
+          if(traceLog.logs[i].logInfo.indexOf(key) != -1){
+            temp.logs.push(traceLog.logs[i]);
+          }
+        }
+        $(this).trigger('renderTraceLogTable', temp);
+      }
+
+    });
+  };
+
+  this.initR = function(e, d){
+    this.render(d);
   };
 
   this.after('initialize', function afterInitialize() {
 
     this.on(document, 'initLogVis',function(e,d){
-      this.render(this.processLogs(d.data));
+      traceLog = this.processLogs(d.data);
+      this.render(traceLog);
       layer.close(d.loading);
-      this.initLogVis();
-      this.initSortClick();
     });
 
     this.on(document, 'keepTraceOn',this.keepTraceOn);
+    this.on(document, 'renderTraceLogTable',this.initR);
   })
 })
