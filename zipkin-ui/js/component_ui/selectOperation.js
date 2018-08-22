@@ -190,20 +190,20 @@ export default component(function select() {
     });
   };
 
-  //////////////// 显示service错误率，改变边框粗细 //////////////////////////////
+  //////////////// 显示service错误率 //////////////////////////////
 
-  this.cleanAllServiceBorder = function(){
-    let nodes = document.getElementsByClassName('node enter');
-    for (let i = 0; i < nodes.length; i++) {
-      let node = nodes[i].getElementsByTagName('rect')[0];
-      // node.style.stroke = "#333";
-      // node.style.strokeWidth = "1px";
-      node.setAttribute('fill', '#fff');
-    }
-  };
+  // this.cleanAllServiceColor = function(){
+  //   let nodes = document.getElementsByClassName('node enter');
+  //   for (let i = 0; i < nodes.length; i++) {
+  //     let node = nodes[i].getElementsByTagName('rect')[0];
+  //     // node.style.stroke = "#333";
+  //     // node.style.strokeWidth = "1px";
+  //     node.setAttribute('fill', '#fff');
+  //   }
+  // };
 
   this.renderServiceBorder = function(e, data){
-    this.cleanAllServiceBorder();
+    initialServiceColor();
     const list = data.list || [];
     list.forEach(function(service){
         if(service.errorTraceCount > 0){
@@ -224,6 +224,32 @@ export default component(function select() {
     })
   };
 
+  //////////////////////// 显示异步调用，改变边框粗细 ////////////////////////////////////
+  this.cleanAllServiceBorder = function(){
+    let nodes = document.getElementsByClassName('node enter');
+    for (let i = 0; i < nodes.length; i++) {
+      let node = nodes[i].getElementsByTagName('rect')[0];
+      node.style.stroke = "#333";
+      node.style.strokeWidth = "1px";
+    }
+  };
+
+  this.renderAsyncServiceBorder = function(e, d){
+    this.cleanAllServiceBorder();
+    let asynServices = d.asynServices || [];
+    // console.log(asynServices);
+    asynServices.forEach(function(service){
+      let temp = "[data-node='"+service+"']";
+      let node = $(temp);
+      if(node[0]){
+        node = $(temp)[0].childNodes[0];
+        node.style.stroke = "#CC0000";
+        node.style.strokeWidth = "3px";
+      }
+    });
+
+  };
+
   /////////////////////////////////////////////////////////////
 
   this.after('initialize', function afterInitialize() {
@@ -231,6 +257,7 @@ export default component(function select() {
     this.on(document, 'locateTraceInSelectTree', this.locateTraceInSelectTree);
     this.on(document, 'highlightServices', this.highlightServices);
     this.on(document, 'renderServiceBorder', this.renderServiceBorder);
+    this.on(document, 'renderAsyncServiceBorder', this.renderAsyncServiceBorder);
 
     this.on(document, 'hightLightAndShowLog', function() {
       this.highlightServices();
@@ -243,7 +270,6 @@ export default component(function select() {
       });
       this.trigger('getLogByTraceID',
         {traceId:globalVar.getSelectedTraceId()[globalVar.getCurrentTraceId()],type:1,loading:loading});
-      // LogData.getLogByTraceID(globalVar.getSelectedTraceId()[globalVar.getCurrentTraceId()],1,loading);
     });
 
   });

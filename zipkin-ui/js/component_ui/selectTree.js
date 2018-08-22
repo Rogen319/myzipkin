@@ -120,6 +120,7 @@ export default component(function selectTree() {
 
   this.nodeClick = function(box){
     box.find('.tree-node').click(function() {
+      console.log("clicking...");
       // 判断该节点是否开启
       if ($.trim($(this).find('.open').val()) === 'true') {
         // 已开启，则关闭节点
@@ -168,13 +169,16 @@ export default component(function selectTree() {
         }
 
         if($.trim($(this).find('.field').html()) === 'traceType'){
-            //显示service错误率，改变边框粗细
+            //显示service错误率，改变service背景
           let requestType = $.trim($(this).find('.title').html());
           requestType = requestType.split('-')[0];
           let traceInfoList = JSON.parse($.trim($(this).find('.traceInfoList').html()));
           $(this).trigger('getServiceWithTraceCountByTraceType',{requestType:requestType, services:traceInfoList[0].serviceList});
           //显示instance图
           $(this).trigger('getServiceWithInstanceOfTSCByTraceType', {requestType:requestType, services:traceInfoList[0].serviceList});
+
+          //查询是否有异步调用
+          $(this).trigger('getAsyncSequenceOfTraceType', {requestType:requestType, services:traceInfoList[0].serviceList});
         }
 
       }
@@ -305,7 +309,6 @@ export default component(function selectTree() {
     });
     this.trigger('closeAll');
     this.nodeClick($('#trace-tree'));
-    // this.initSortClick();
     this.initControlTree();
 
   };

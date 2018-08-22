@@ -253,10 +253,10 @@ export default component(function errorRate() {
       });
     });
 
-    console.log("x=" );
-    console.log(JSON.stringify(x));
-    console.log("y=");
-    console.log(JSON.stringify(y));
+    // console.log("x=" );
+    // console.log(JSON.stringify(x));
+    // console.log("y=");
+    // console.log(JSON.stringify(y));
 
     let options = {
       title : {

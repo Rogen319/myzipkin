@@ -2,6 +2,9 @@ import {component} from "flightjs";
 import $ from "jquery";
 import '../../libs/layer/layer';
 import {globalVar } from '../component_data/log';
+import {asyncModalBodyTemplate, asyncModalListTemplate} from "../templates";
+import echarts from "echarts";
+import {contextRoot} from "../publicPath";
 
 export default component(function ServiceInfoModal() {
 
@@ -271,13 +274,112 @@ export default component(function ServiceInfoModal() {
     });
   };
 
+  //////////////////////////// 异步调用顺序弹出框 //////////////////////////////////
+  var sequences;
+
+  this.showAsyncSequences = function(e, d){
+    sequences = d.sequences || [];
+    $('#asyncModalBody').html(asyncModalBodyTemplate({
+      contextRoot
+    }));
+
+    let barData = [];
+    let typeName = [];
+    sequences.forEach(function(s, index){
+      typeName[index] = "seq-" + (index+1);
+      barData[index] = {
+        name: typeName[index],
+        value: s.errorRate
+      }
+    });
+    let asyncBar = echarts.init(document.getElementById('asyncBar'));
+    let options = {
+      backgroundColor: 'white',
+      title: {
+        text: '异步调用顺序-错误率',
+        left: 'center'
+      },
+      tooltip: {
+        trigger: 'axis',
+        formatter: "{a} <br/> {b} : {c}%",
+        axisPointer: {
+          type: 'shadow'
+        }
+      },
+      grid: {
+        left: '22%'
+      },
+      legend: {
+        data: typeName
+      },
+      yAxis: {
+        type: 'value',
+        name: '错误率'
+      },
+      xAxis: {
+        type: 'category',
+        data: typeName
+      },
+      series: [
+        {
+          name: '异步顺序错误率',
+          type: 'bar',
+          data: barData,
+        }
+      ]
+    };
+    asyncBar.setOption(options);
+
+    asyncBar.on('click', function(params){
+      let index = params.data.name.split('-')[1];
+      // console.log("index=" + index);
+      const model = sequences[index - 1];
+      model.sequenceType = params.data.name;
+      // console.log(JSON.stringify(model));
+      model.serviceSequenceString = "";
+      for(let i = 0; i < model.serviceSequence.length - 1; i++){
+        model.serviceSequenceString += model.serviceSequence[i] + " -> ";
+      }
+      model.serviceSequenceString += model.serviceSequence[model.serviceSequence.length - 1];
+
+      $('#asyncList').html(asyncModalListTemplate({
+        contextRoot,
+        ...model
+      }));
+
+      $('.async-traceid').bind('click', function(){
+        let traceId = $.trim($(this).html());
+        // console.log("traceId=" + traceId);
+        // const loading = layer.load(2,{
+        //   shade: 0.3,
+        //   scrollbar: false,
+        //   zIndex: 20000000
+        // });
+        // $(this).trigger('recoverSort');
+        // $(this).trigger('getLogByTraceID', {traceId:traceId,type:1,loading:loading});
+        $('.tree-node').each(function () {
+           let title = $.trim($(this).find('.title').html());
+           console.log("title=" + title);
+           if(title == traceId){
+             console.log("get...");
+             $(this).click();
+           }
+        });
+        $('#asyncModal').modal('hide');
+      });
+    });
+
+    $('#asyncSequenceButton').show();
+  };
+
+
   /////////////////////////////////////////////////////////////
 
   this.after('initialize', function afterInitialize() {
     this.on(document, 'initialInfo',this.initI);
     this.on(document, 'showServiceInstanceInfo',this.showServiceInstanceInfo);
-    this.on(document, 'showNodeInfo',this.showNodeInfo)
-
+    this.on(document, 'showNodeInfo',this.showNodeInfo);
+    this.on(document, 'showAsyncSequences',this.showAsyncSequences);
   });
 });
 

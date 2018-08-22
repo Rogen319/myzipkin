@@ -8,3 +8,5 @@ export const logTemplate = require('../templates/log.mustache');
 export const traceTreeTemplate = require('../templates/traceTree.mustache');
 export const errorRatePanelTemplate = require('../templates/errorRatePanel.mustache');
 export const traceLogTableTemplate = require('../templates/traceLogTable.mustache');
+export const asyncModalBodyTemplate = require('../templates/asyncModalBody.mustache');
+export const asyncModalListTemplate = require('../templates/asyncModalList.mustache');

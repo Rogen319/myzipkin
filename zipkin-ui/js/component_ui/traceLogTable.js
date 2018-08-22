@@ -229,10 +229,15 @@ export default component(function traceLog() {
     this.on(document, 'initLogVis',function(e,d){
       traceLog = this.processLogs(d.data);
       this.render(traceLog);
+      console.log("close...");
       layer.close(d.loading);
     });
 
     this.on(document, 'keepTraceOn',this.keepTraceOn);
     this.on(document, 'renderTraceLogTable',this.initR);
+    this.on(document, 'recoverSort', function(){
+      currentSort = 1;
+    });
+
   })
 })
