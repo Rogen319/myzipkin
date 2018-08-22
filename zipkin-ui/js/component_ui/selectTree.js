@@ -153,16 +153,18 @@ export default component(function selectTree() {
           });
         });
 
-
         if($.trim($(this).find('.field').html()) === 'root'){
           //图表联动
           $(this).trigger('initPie',{data:JSON.parse($.trim($(this).find('.traceTypeList').html())), type:2});
           // initPie(JSON.parse($.trim($(this).find('.traceTypeList').html())),2);
-          $('#errorBar').hide();
+          // $('#errorBar').hide();
           // $('#errorBar').html('');
 
+          let requestType = $.trim($(this).find('.title').html());
           //显示service错误率，改变边框粗细
-          $(this).trigger('getServiceWithTraceCountByRequestType',$.trim($(this).find('.title').html()));
+          $(this).trigger('getServiceWithTraceCountByRequestType', requestType);
+          //显示instance图
+          $(this).trigger('getServiceWithInstanceOfTSCByRequestType', requestType);
         }
 
         if($.trim($(this).find('.field').html()) === 'traceType'){
@@ -171,6 +173,8 @@ export default component(function selectTree() {
           requestType = requestType.split('-')[0];
           let traceInfoList = JSON.parse($.trim($(this).find('.traceInfoList').html()));
           $(this).trigger('getServiceWithTraceCountByTraceType',{requestType:requestType, services:traceInfoList[0].serviceList});
+          //显示instance图
+          $(this).trigger('getServiceWithInstanceOfTSCByTraceType', {requestType:requestType, services:traceInfoList[0].serviceList});
         }
 
       }

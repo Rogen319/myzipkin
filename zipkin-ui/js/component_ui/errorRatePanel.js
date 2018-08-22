@@ -60,7 +60,8 @@ export default component(function errorRate() {
     $('#errorPie').trigger('closeAll');
     $('#errorPie').trigger('initPie', {data:rawData, type:1});
     $('#errorPie').trigger('initVerticalBar', {data:rawData, type:1});
-    $('#errorBar').show();
+    // $('#errorBar').show();
+    this.initVerticalBar(rawData,1);
   };
 
 
@@ -72,6 +73,10 @@ export default component(function errorRate() {
     let errorPie = echarts.init(document.getElementById('errorPie'));
     let pieData = [];
     let typeName = [];
+    let errorTotal = 0;
+    for(let i = 0; i < data.length; i++){
+      errorTotal += data[i].errorTraceCount;
+    }
     for(let i = 0; i < data.length; i++){
       if(type == 1){
         typeName[i] = data[i].requestType;
@@ -80,7 +85,12 @@ export default component(function errorRate() {
         typeName[i] = data[i].typeName;
       }
       let dataItem = {};
-      dataItem.value = ((data[i].errorCount / (data[i].errorCount + data[i].exceptionCount + data[i].normalCount)) * 100).toFixed(2);
+      // dataItem.value = ((data[i].errorCount / (data[i].errorCount + data[i].exceptionCount + data[i].normalCount)) * 100).toFixed(2);
+      if(errorTotal == 0){
+        dataItem.value = 0;
+      } else {
+        dataItem.value = ((data[i].errorTraceCount / errorTotal) * 100).toFixed(2);
+      }
       dataItem.name = typeName[i];
       dataItem.itemStyle = {};
       dataItem.itemStyle.emphasis = {};
@@ -112,7 +122,7 @@ export default component(function errorRate() {
           clockwise: 'true',
           startAngle: '0',
           radius : '55%',
-          center: ['65%', '50%'],
+          center: ['55%', '50%'],
           data: pieData,
         }
       ]
@@ -124,7 +134,8 @@ export default component(function errorRate() {
       errorPie.on('click', function (params) {
         $('#errorPie').trigger('locateRequestTypeInSelectTree', params.data.name);
         $('#errorPie').trigger('initPie', {data:rawData[params.dataIndex].traceTypeList, type:2});
-        $('#errorBar').hide();
+        $('#errorPie').trigger('getServiceWithInstanceOfTSCByRequestType', params.data.name);
+        // $('#errorBar').hide();
         // $('#errorBar').html('');
       });
     }
@@ -143,6 +154,10 @@ export default component(function errorRate() {
     let errorBar = echarts.init(document.getElementById('errorBar'));
     let barData = [];
     let typeName = [];
+    let errorTotal = 0;
+    for(let i = 0; i < data.length; i++){
+      errorTotal += data[i].errorTraceCount;
+    }
     for(let i = 0; i < data.length; i++){
       if(type == 1){
         typeName[i] = data[i].requestType;
@@ -151,7 +166,12 @@ export default component(function errorRate() {
         typeName[i] = data[i].typeName;
       }
       let dataItem = {};
-      dataItem.value = ((data[i].errorCount / (data[i].errorCount + data[i].exceptionCount + data[i].normalCount)) * 100).toFixed(2);
+      // dataItem.value = ((data[i].errorCount / (data[i].errorCount + data[i].exceptionCount + data[i].normalCount)) * 100).toFixed(2);
+      if(errorTotal == 0){
+        dataItem.value = 0;
+      } else {
+        dataItem.value = ((data[i].errorTraceCount / errorTotal) * 100).toFixed(2);
+      }
       dataItem.name = typeName[i];
       barData[i] = dataItem;
     }
@@ -206,6 +226,99 @@ export default component(function errorRate() {
     });
   };
 
+  this.receiveServiceInstance = function(e, d){
+    let errorBar = echarts.init(document.getElementById('errorBar'));
+    let list = d.list || [];
+    // console.log(list);
+    let x =[], y = [], maxInstanceNum = 0;
+    list.forEach(function(l, index){
+      x[index] = l.serviceName;
+      let instanceList = l.siwtscList || [];
+      instanceList.forEach(function(i){
+        // console.log(i.instanceNum);
+        y[i.instanceNum - 1] = y[i.instanceNum - 1] ||
+          {
+            name:'instance:' + i.instanceNum,
+            type:'bar',
+            data:[],
+            markPoint : {
+              data : [
+                {type : 'max', name: '最大值'},
+                {type : 'min', name: '最小值'}
+              ]
+            }
+          };
+        let errorRate = (i.errorTraceCount/ (i.errorTraceCount + i.normalTraceCount)).toFixed(2);
+        y[i.instanceNum - 1].data[index] = errorRate;
+      });
+    });
+
+    console.log("x=" );
+    console.log(JSON.stringify(x));
+    console.log("y=");
+    console.log(JSON.stringify(y));
+
+    let options = {
+      title : {
+        text: '服务实例-错误率'
+      },
+      tooltip : {
+        trigger: 'axis'
+      },
+      toolbox: {
+        show : true,
+        feature : {
+          dataView : {show: true, readOnly: false},
+          magicType : {show: true, type: ['line', 'bar']},
+          restore : {show: true},
+          saveAsImage : {show: true}
+        }
+      },
+      calculable : true,
+      xAxis : [
+        {
+          type : 'category',
+          data : x,
+          axisLabel: {
+            interval:0,
+            rotate:40
+          }
+        }
+      ],
+      yAxis : [
+        {
+          type : 'value',
+          name : '错误率'
+        }
+      ],
+      dataZoom: [
+        {
+          show: true,
+          start: 0,
+          end: 100
+        },
+        {
+          type: 'inside',
+          start: 0,
+          end: 100
+        },
+        {
+          show: true,
+          yAxisIndex: 0,
+          filterMode: 'empty',
+          width: 30,
+          height: '80%',
+          showDataShadow: false,
+          left: '93%'
+        }
+      ],
+      series : y
+    };
+
+    errorBar.setOption(options);
+
+  };
+
 
   this.after('initialize', function afterInitialize() {
     this.on(document, 'showErrorPie', function (e, data){
@@ -219,6 +332,8 @@ export default component(function errorRate() {
     this.on( document,'initVerticalBar', this.initV);
     this.on( document, 'closeErrorPanel', this.closeErrorPanel);
     this.on( document, 'returnLastLevel', this.returnLastLevel);
+
+    this.on( document, 'receiveServiceInstance', this.receiveServiceInstance);
   })
 
 })

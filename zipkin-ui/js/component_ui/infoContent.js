@@ -15,7 +15,7 @@ export default component(function ServiceInfoModal() {
   };
 
   this.initI = function(e, d){
-    this.initialInfo(d.e1, d.data, d.chosen);
+    this.initialInfo(d.el, d.data, d.chosen);
   };
 
   this.initialInfo = function(el,data,chosen) {
@@ -28,7 +28,8 @@ export default component(function ServiceInfoModal() {
     let instanceName = [];
     for(let i = 0;i < instanceWithLogList.length; i++)
       instanceName[i] = instanceWithLogList[i].serviceInfo.instanceInfo.instanceName;
-    this.initialInstanceList(el[0],data,instanceName,chosen);
+    // this.initialInstanceList(el[0],data,instanceName,chosen);
+    this.initialInstanceList(el,data,instanceName,chosen);
     this.initialInstanceLog(el[1],instanceWithLogList[chosen]);
   };
 
@@ -41,10 +42,11 @@ export default component(function ServiceInfoModal() {
       html += '">' + instanceName[i] + '</li>';
     }
     html += '</ul>';
-    el.html(html);
-    el.children('ul').eq(0).children('li').each(function(i) {
+    el[0].html(html);
+    el[0].children('ul').eq(0).children('li').each(function(i) {
       $(this).bind('click', function() {
-        this.initialInfo(type,data, i);
+        $(this).trigger('initialInfo', {el:el, data:data, chosen:i});
+        // this.initialInfo(type,data, i);
       });
     });
   };

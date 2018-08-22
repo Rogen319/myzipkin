@@ -3,8 +3,8 @@ import $ from 'jquery';
 import '../../libs/layer/layer';
 
 
-// const address = 'http://10.141.212.25';
-const address = 'http://10.141.212.137';
+const address = 'http://10.141.212.25';
+// const address = 'http://10.141.212.137';
 
 export default component(function dependency() {
 
@@ -77,7 +77,7 @@ export default component(function dependency() {
       data: JSON.stringify(info)
     }).done(data => {
       layer.close(loading);
-      this.trigger('initialInfo', {e1:el, data:data,chosen:0});
+      this.trigger('initialInfo', {el:el, data:data,chosen:0});
     }).fail(e => {
       layer.msg('获取服务日志失败',{icon:2});
     });
@@ -837,7 +837,7 @@ export default component(function dependency() {
       contentType: "application/json",
       data: JSON.stringify(request)
     }).done(data => {
-      console.log(data);
+      // console.log(data);
       if(data.status){
         this.trigger('renderServiceBorder',{list: data.serviceWithTraceStatusCountList});
       } else {
@@ -847,6 +847,7 @@ export default component(function dependency() {
       layer.msg('获取服务错误率信息失败',{icon:2});
     });
   };
+
 
   this.getServiceWithTraceCountByTraceType = function(e, d){
     let request = {
@@ -908,7 +909,7 @@ export default component(function dependency() {
       contentType: "application/json",
       data: JSON.stringify(request)
     }).done(data => {
-      console.log(data);
+      // console.log(data);
       if(data.status){
         this.trigger('renderServiceBorder',{list: data.serviceWithTraceStatusCountList});
       } else {
@@ -919,6 +920,75 @@ export default component(function dependency() {
     });
   };
 
+
+  this.getServiceWithInstanceOfTSCByRequestType = function(e, requestType){
+    let request = {
+      requestType: requestType
+    };
+    let parm = window.location.search;
+    if (parm.length > 1){
+      parm = parm.substring(1,parm.length);
+      request.endTime = Number(parm.split('&')[0].split('=')[1]) ;
+      request.lookback = request.endTime - Number(parm.split('&')[1].split('=')[1]) ;
+    }
+    else{
+      request.endTime = (new Date()).getTime();
+      request.lookback = 86400000;
+    }
+
+    $.ajax(address + ':17319/getServiceWithInstanceOfTSCByRequestType', {
+      async: true,
+      type: 'post',
+      dataType: 'json',
+      contentType: "application/json",
+      data: JSON.stringify(request)
+    }).done(data => {
+      // console.log(data);
+      if(data.status){
+        this.trigger('receiveServiceInstance',{list: data.list});
+      } else {
+        layer.msg('获取服务实例错误率信息失败',{icon:2});
+      }
+    }).fail(e => {
+      layer.msg('获取服务实例错误率信息失败',{icon:2});
+    });
+  };
+
+
+  this.getServiceWithInstanceOfTSCByTraceType = function(e, d){
+    let request = {
+      requestType: d.requestType,
+      services: d.services
+    };
+    let parm = window.location.search;
+    if (parm.length > 1){
+      parm = parm.substring(1,parm.length);
+      request.endTime = Number(parm.split('&')[0].split('=')[1]) ;
+      request.lookback = request.endTime - Number(parm.split('&')[1].split('=')[1]) ;
+    }
+    else{
+      request.endTime = (new Date()).getTime();
+      request.lookback = 86400000;
+    }
+
+    $.ajax(address + ':17319/getServiceWithInstanceOfTSCByTraceType', {
+      async: true,
+      type: 'post',
+      dataType: 'json',
+      contentType: "application/json",
+      data: JSON.stringify(request)
+    }).done(data => {
+      // console.log(data);
+      if(data.status){
+        this.trigger('receiveServiceInstance',{list: data.list});
+      } else {
+        layer.msg('获取服务实例错误率信息失败',{icon:2});
+      }
+    }).fail(e => {
+      layer.msg('获取服务实例错误率信息失败',{icon:2});
+    });
+  };
+
   this.after('initialize', function() {
     this.on(document, 'getLogByTraceID', this.getLogByTraceID);
     this.on(document, 'getCluster', this.getCluster);
@@ -926,6 +996,8 @@ export default component(function dependency() {
     this.on(document, 'requestLogWithTraceIDByTimeRange', this.getRequestWithTraceIDByTimeRange);
     this.on(document, 'getServiceWithTraceCountByRequestType', this.getServiceWithTraceCountByRequestType);
     this.on(document, 'getServiceWithTraceCountByTraceType', this.getServiceWithTraceCountByTraceType);
+    this.on(document, 'getServiceWithInstanceOfTSCByRequestType', this.getServiceWithInstanceOfTSCByRequestType);
+    this.on(document, 'getServiceWithInstanceOfTSCByTraceType', this.getServiceWithInstanceOfTSCByTraceType);
   });
 
 });

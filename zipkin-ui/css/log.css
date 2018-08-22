@@ -178,15 +178,15 @@
 }
 
 #errorPie {
-  width: 700px;
+  width: 600px;
   height: 400px;
-  padding-left: 100px;
+  padding-left: 20px;
 }
 
 #errorBar {
-  width: 750px;
+  width: 1000px;
   height: 400px;
-  padding-left: 200px;
+  padding-left: 100px;
 }
 
 /*traceLogTable*/
