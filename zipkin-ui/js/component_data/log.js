@@ -3,8 +3,8 @@ import $ from 'jquery';
 import '../../libs/layer/layer';
 
 
-const address = 'http://10.141.212.25';
-// const address = 'http://10.141.212.137';
+// const address = 'http://10.141.212.25';
+const address = 'http://10.141.212.137';
 
 export default component(function dependency() {
 

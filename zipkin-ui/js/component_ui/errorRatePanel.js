@@ -152,6 +152,7 @@ export default component(function errorRate() {
 
   this.initVerticalBar = function (data,type) {
     let errorBar = echarts.init(document.getElementById('errorBar'));
+    errorBar.clear();
     let barData = [];
     let typeName = [];
     let errorTotal = 0;
@@ -228,6 +229,8 @@ export default component(function errorRate() {
 
   this.receiveServiceInstance = function(e, d){
     let errorBar = echarts.init(document.getElementById('errorBar'));
+    errorBar.clear();
+
     let list = d.list || [];
     // console.log(list);
     let x =[], y = [], maxInstanceNum = 0;

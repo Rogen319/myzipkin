@@ -359,9 +359,9 @@ export default component(function ServiceInfoModal() {
         // $(this).trigger('getLogByTraceID', {traceId:traceId,type:1,loading:loading});
         $('.tree-node').each(function () {
            let title = $.trim($(this).find('.title').html());
-           console.log("title=" + title);
+           // console.log("title=" + title);
            if(title == traceId){
-             console.log("get...");
+             // console.log("get...");
              $(this).click();
            }
         });

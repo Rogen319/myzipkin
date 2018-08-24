@@ -120,7 +120,7 @@ export default component(function selectTree() {
 
   this.nodeClick = function(box){
     box.find('.tree-node').click(function() {
-      console.log("clicking...");
+      // console.log("clicking...");
       // 判断该节点是否开启
       if ($.trim($(this).find('.open').val()) === 'true') {
         // 已开启，则关闭节点
