@@ -165,7 +165,8 @@ export default component(function selectTree() {
           //显示service错误率，改变边框粗细
           $(this).trigger('getServiceWithTraceCountByRequestType', requestType);
           //显示instance图
-          $(this).trigger('getServiceWithInstanceOfTSCByRequestType', requestType);
+          // $(this).trigger('getServiceWithInstanceOfTSCByRequestType', requestType);
+          $(this).trigger('getServiceWithInstanceNameOfTSCByRequestType', requestType);
         }
 
         if($.trim($(this).find('.field').html()) === 'traceType'){
@@ -175,7 +176,8 @@ export default component(function selectTree() {
           let traceInfoList = JSON.parse($.trim($(this).find('.traceInfoList').html()));
           $(this).trigger('getServiceWithTraceCountByTraceType',{requestType:requestType, services:traceInfoList[0].serviceList});
           //显示instance图
-          $(this).trigger('getServiceWithInstanceOfTSCByTraceType', {requestType:requestType, services:traceInfoList[0].serviceList});
+          // $(this).trigger('getServiceWithInstanceOfTSCByTraceType', {requestType:requestType, services:traceInfoList[0].serviceList});
+          $(this).trigger('getServiceWithInstanceNameOfTSCByTraceType', {requestType:requestType, services:traceInfoList[0].serviceList});
 
           //查询是否有异步调用
           $(this).trigger('getAsyncSequenceOfTraceType', {requestType:requestType, services:traceInfoList[0].serviceList});

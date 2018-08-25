@@ -9,6 +9,7 @@ export default component(function errorRate() {
 
   var showMaShiRo = false;
   var rawData;
+  var instanceData;
 
   this.closeErrorPanel = function(){
     $('#errorPieVis').css('height', '0');
@@ -227,39 +228,133 @@ export default component(function errorRate() {
     });
   };
 
-  this.receiveServiceInstance = function(e, d){
+
+
+  this.receiveServiceError = function(e, d){
     let errorBar = echarts.init(document.getElementById('errorBar'));
     errorBar.clear();
 
-    let list = d.list || [];
+    instanceData = d.list || [];
     // console.log(list);
-    let x =[], y = [], maxInstanceNum = 0;
-    list.forEach(function(l, index){
+    let x =[], y = [];
+    instanceData.forEach(function(l, index){
       x[index] = l.serviceName;
-      let instanceList = l.siwtscList || [];
+      let instanceList = l.sinwtscList || [];
+      let normal = 0, error = 0;
       instanceList.forEach(function(i){
-        // console.log(i.instanceNum);
-        y[i.instanceNum - 1] = y[i.instanceNum - 1] ||
-          {
-            name:'instance:' + i.instanceNum,
-            type:'bar',
-            data:[],
-            markPoint : {
-              data : [
-                {type : 'max', name: '最大值'},
-                {type : 'min', name: '最小值'}
-              ]
-            }
-          };
-        let errorRate = (i.errorTraceCount/ (i.errorTraceCount + i.normalTraceCount)).toFixed(2);
-        y[i.instanceNum - 1].data[index] = errorRate;
+        normal += i.normalTraceCount;
+        error += i.errorTraceCount;
       });
+      let k = {
+        name: l.serviceName,
+        value: (normal + error) == 0? 0: (error / (error + normal)).toFixed(2)
+      };
+      y[index] = k;
     });
 
-    // console.log("x=" );
-    // console.log(JSON.stringify(x));
-    // console.log("y=");
-    // console.log(JSON.stringify(y));
+    console.log("x=" );
+    console.log(JSON.stringify(x));
+    console.log("y=");
+    console.log(JSON.stringify(y));
+
+    let options = {
+      title : {
+        text: '服务-错误率'
+      },
+      tooltip : {
+        trigger: 'axis'
+      },
+      toolbox: {
+        show : true,
+        feature : {
+          dataView : {show: true, readOnly: false},
+          magicType : {show: true, type: ['line', 'bar']},
+          restore : {show: true},
+          saveAsImage : {show: true}
+        }
+      },
+      calculable : true,
+      xAxis : [
+        {
+          type : 'category',
+          data : x,
+          axisLabel: {
+            interval:0,
+            rotate:40
+          }
+        }
+      ],
+      yAxis : [
+        {
+          type : 'value',
+          name : '错误率'
+        }
+      ],
+      dataZoom: [
+        {
+          show: true,
+          start: 0,
+          end: 100
+        },
+        {
+          type: 'inside',
+          start: 0,
+          end: 100
+        },
+        {
+          show: true,
+          yAxisIndex: 0,
+          filterMode: 'empty',
+          width: 30,
+          height: '80%',
+          showDataShadow: false,
+          left: '93%'
+        }
+      ],
+      series :[
+        {
+          type:'bar',
+          data:y,
+          markPoint : {
+            data : [
+              {type : 'max', name: '最大值'},
+              {type : 'min', name: '最小值'}
+            ]
+          }
+        }
+      ]
+    };
+    errorBar.setOption(options);
+    errorBar.on('click', function (params) {
+      console.log("params.data.name:");
+      console.log(params.data.name);
+      $('#errorBar').trigger('showInstanceError', params.data.name);
+    });
+
+  };
+
+  this.showInstanceError = function(e, d){
+    let errorBar = echarts.init(document.getElementById('errorBar'));
+    errorBar.clear();
+
+    console.log("d=" + d);
+    let serviceName = d;
+    let x =[], y = [];
+    instanceData.forEach(function(l){
+      if( l.serviceName == serviceName){
+        let sinwtscList = l.sinwtscList || [];
+        sinwtscList.forEach(function(s){
+            x.push(s.instanceName);
+            let e = ((s.errorTraceCount + s.normalTraceCount) == 0) ? 0 : (s.errorTraceCount / (s.errorTraceCount + s.normalTraceCount)).toFixed(2);
+            y.push(e);
+        });
+      }
+    });
+
+    console.log("x=" );
+    console.log(JSON.stringify(x));
+    console.log("y=");
+    console.log(JSON.stringify(y));
 
     let options = {
       title : {
@@ -315,12 +410,117 @@ export default component(function errorRate() {
           left: '93%'
         }
       ],
-      series : y
+      series : {
+        type:'bar',
+        data:y,
+        markPoint : {
+          data : [
+            {type : 'max', name: '最大值'},
+            {type : 'min', name: '最小值'}
+          ]
+        }
+      }
     };
 
     errorBar.setOption(options);
 
   };
+
+
+  // this.receiveServiceInstance2 = function(e, d){
+  //   let errorBar = echarts.init(document.getElementById('errorBar'));
+  //   errorBar.clear();
+  //
+  //   let list = d.list || [];
+  //   // console.log(list);
+  //   let x =[], y = [], maxInstanceNum = 0;
+  //   list.forEach(function(l, index){
+  //     x[index] = l.serviceName;
+  //     let instanceList = l.siwtscList || [];
+  //     instanceList.forEach(function(i){
+  //       // console.log(i.instanceNum);
+  //       y[i.instanceNum - 1] = y[i.instanceNum - 1] ||
+  //         {
+  //           name:'instance:' + i.instanceNum,
+  //           type:'bar',
+  //           data:[],
+  //           markPoint : {
+  //             data : [
+  //               {type : 'max', name: '最大值'},
+  //               {type : 'min', name: '最小值'}
+  //             ]
+  //           }
+  //         };
+  //       let errorRate = (i.errorTraceCount/ (i.errorTraceCount + i.normalTraceCount)).toFixed(2);
+  //       y[i.instanceNum - 1].data[index] = errorRate;
+  //     });
+  //   });
+  //
+  //   console.log("x=" );
+  //   console.log(JSON.stringify(x));
+  //   console.log("y=");
+  //   console.log(JSON.stringify(y));
+  //
+  //   let options = {
+  //     title : {
+  //       text: '服务实例-错误率'
+  //     },
+  //     tooltip : {
+  //       trigger: 'axis'
+  //     },
+  //     toolbox: {
+  //       show : true,
+  //       feature : {
+  //         dataView : {show: true, readOnly: false},
+  //         magicType : {show: true, type: ['line', 'bar']},
+  //         restore : {show: true},
+  //         saveAsImage : {show: true}
+  //       }
+  //     },
+  //     calculable : true,
+  //     xAxis : [
+  //       {
+  //         type : 'category',
+  //         data : x,
+  //         axisLabel: {
+  //           interval:0,
+  //           rotate:40
+  //         }
+  //       }
+  //     ],
+  //     yAxis : [
+  //       {
+  //         type : 'value',
+  //         name : '错误率'
+  //       }
+  //     ],
+  //     dataZoom: [
+  //       {
+  //         show: true,
+  //         start: 0,
+  //         end: 100
+  //       },
+  //       {
+  //         type: 'inside',
+  //         start: 0,
+  //         end: 100
+  //       },
+  //       {
+  //         show: true,
+  //         yAxisIndex: 0,
+  //         filterMode: 'empty',
+  //         width: 30,
+  //         height: '80%',
+  //         showDataShadow: false,
+  //         left: '93%'
+  //       }
+  //     ],
+  //     series : y
+  //   };
+  //
+  //   errorBar.setOption(options);
+  //
+  // };
 
 
   this.after('initialize', function afterInitialize() {
@@ -336,7 +536,8 @@ export default component(function errorRate() {
     this.on( document, 'closeErrorPanel', this.closeErrorPanel);
     this.on( document, 'returnLastLevel', this.returnLastLevel);
 
-    this.on( document, 'receiveServiceInstance', this.receiveServiceInstance);
+    this.on( document, 'receiveServiceInstance', this.receiveServiceError);
+    this.on( document, 'showInstanceError', this.showInstanceError);
   })
 
 })

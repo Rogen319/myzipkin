@@ -989,7 +989,7 @@ export default component(function dependency() {
     });
   };
 
-
+  //not finish
   this.getAsyncSequenceOfTraceType = function(e, d){
     const data = {
       "status": true,
@@ -1051,6 +1051,76 @@ export default component(function dependency() {
 
   };
 
+  this.getServiceWithInstanceNameOfTSCByRequestType = function(e, requestType){
+    let request = {
+      requestType: requestType
+    };
+    let parm = window.location.search;
+    if (parm.length > 1){
+      parm = parm.substring(1,parm.length);
+      request.endTime = Number(parm.split('&')[0].split('=')[1]) ;
+      request.lookback = request.endTime - Number(parm.split('&')[1].split('=')[1]) ;
+    }
+    else{
+      request.endTime = (new Date()).getTime();
+      request.lookback = 86400000;
+    }
+
+    $.ajax(address + ':17319/getServiceWithInstanceNameOfTSCByRequestType', {
+      async: true,
+      type: 'post',
+      dataType: 'json',
+      contentType: "application/json",
+      data: JSON.stringify(request)
+    }).done(data => {
+      console.log(data);
+      if(data.status){
+        this.trigger('receiveServiceInstance',{list: data.list});
+      } else {
+        layer.msg(data.message,{icon:2});
+      }
+    }).fail(e => {
+      layer.msg("获取数据失败",{icon:2});
+    });
+
+  };
+
+
+  this.getServiceWithInstanceNameOfTSCByTraceType = function(e, d){
+    let request = {
+      requestType: d.requestType,
+      services: d.services
+    };
+    let parm = window.location.search;
+    if (parm.length > 1){
+      parm = parm.substring(1,parm.length);
+      request.endTime = Number(parm.split('&')[0].split('=')[1]) ;
+      request.lookback = request.endTime - Number(parm.split('&')[1].split('=')[1]) ;
+    }
+    else{
+      request.endTime = (new Date()).getTime();
+      request.lookback = 86400000;
+    }
+
+    $.ajax(address + ':17319/getServiceWithInstanceNameOfTSCByTraceType', {
+      async: true,
+      type: 'post',
+      dataType: 'json',
+      contentType: "application/json",
+      data: JSON.stringify(request)
+    }).done(data => {
+      console.log(data);
+      if(data.status){
+        this.trigger('receiveServiceInstance',{list: data.list});
+      } else {
+        layer.msg(data.message,{icon:2});
+      }
+    }).fail(e => {
+      layer.msg(data.message,{icon:2});
+    });
+
+  };
+
 
   this.after('initialize', function() {
     this.on(document, 'getLogByTraceID', this.getLogByTraceID);
@@ -1059,8 +1129,11 @@ export default component(function dependency() {
     this.on(document, 'requestLogWithTraceIDByTimeRange', this.getRequestWithTraceIDByTimeRange);
     this.on(document, 'getServiceWithTraceCountByRequestType', this.getServiceWithTraceCountByRequestType);
     this.on(document, 'getServiceWithTraceCountByTraceType', this.getServiceWithTraceCountByTraceType);
-    this.on(document, 'getServiceWithInstanceOfTSCByRequestType', this.getServiceWithInstanceOfTSCByRequestType);
-    this.on(document, 'getServiceWithInstanceOfTSCByTraceType', this.getServiceWithInstanceOfTSCByTraceType);
+    // this.on(document, 'getServiceWithInstanceOfTSCByRequestType', this.getServiceWithInstanceOfTSCByRequestType);
+    // this.on(document, 'getServiceWithInstanceOfTSCByTraceType', this.getServiceWithInstanceOfTSCByTraceType);
+
+    this.on(document, 'getServiceWithInstanceNameOfTSCByRequestType', this.getServiceWithInstanceNameOfTSCByRequestType);
+    this.on(document, 'getServiceWithInstanceNameOfTSCByTraceType', this.getServiceWithInstanceNameOfTSCByTraceType);
 
     this.on(document, 'getAsyncSequenceOfTraceType', this.getAsyncSequenceOfTraceType);
   });
