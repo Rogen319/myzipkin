@@ -2,7 +2,7 @@ import {component} from "flightjs";
 import $ from "jquery";
 import '../../libs/layer/layer';
 import {globalVar } from '../component_data/log';
-import {asyncModalBodyTemplate, asyncModalListTemplate} from "../templates";
+import {asyncModalBodyTemplate, asyncModalListTemplate, asyncModalRightCardTemplate} from "../templates";
 import echarts from "echarts";
 import {contextRoot} from "../publicPath";
 
@@ -289,10 +289,12 @@ export default component(function ServiceInfoModal() {
       typeName[index] = "seq-" + (index+1);
       barData[index] = {
         name: typeName[index],
-        value: s.errorRate
+        value: s.errorRate * 100
       }
     });
     let asyncBar = echarts.init(document.getElementById('asyncBar'));
+    asyncBar.clear();
+
     let options = {
       backgroundColor: 'white',
       title: {
@@ -330,46 +332,103 @@ export default component(function ServiceInfoModal() {
     };
     asyncBar.setOption(options);
 
-    asyncBar.on('click', function(params){
-      let index = params.data.name.split('-')[1];
-      // console.log("index=" + index);
-      const model = sequences[index - 1];
-      model.sequenceType = params.data.name;
-      // console.log(JSON.stringify(model));
-      model.serviceSequenceString = "";
-      for(let i = 0; i < model.serviceSequence.length - 1; i++){
-        model.serviceSequenceString += model.serviceSequence[i] + " -> ";
-      }
-      model.serviceSequenceString += model.serviceSequence[model.serviceSequence.length - 1];
+    //右边的seq顺序和trace list
+    let model = {
+      seqNameList: typeName,
+    };
+    $('#asyncList').html(asyncModalRightCardTemplate({
+      contextRoot,
+      ...model
+    }));
+    $('#asyncSeqNameList').children('a').eq(0).addClass('active');
 
-      $('#asyncList').html(asyncModalListTemplate({
-        contextRoot,
-        ...model
-      }));
+    let model2 = {
+      sequenceType: typeName[0],
+      traceSet: sequences[0].traceSet
+    };
+    model2.serviceSequenceString = "";
+    for(let i = 0; i < sequences[0].serviceSequence.length - 1; i++){
+      model2.serviceSequenceString += sequences[0].serviceSequence[i] + " -> ";
+    }
+    model2.serviceSequenceString += sequences[0].serviceSequence[sequences[0].serviceSequence.length - 1];
 
-      $('.async-traceid').bind('click', function(){
-        let traceId = $.trim($(this).html());
-        // console.log("traceId=" + traceId);
-        // const loading = layer.load(2,{
-        //   shade: 0.3,
-        //   scrollbar: false,
-        //   zIndex: 20000000
-        // });
-        // $(this).trigger('recoverSort');
-        // $(this).trigger('getLogByTraceID', {traceId:traceId,type:1,loading:loading});
-        $('.tree-node').each(function () {
-           let title = $.trim($(this).find('.title').html());
-           // console.log("title=" + title);
-           if(title == traceId){
-             // console.log("get...");
-             $(this).click();
-           }
-        });
-        $('#asyncModal').modal('hide');
+    $('#asyncTraceList').html(asyncModalListTemplate({
+      contextRoot,
+      ...model2
+    }));
+
+    $('#asyncSeqNameList').children('a').bind('click', function(){
+      $('#asyncSeqNameList').children('a').each(function(){
+        $(this).removeClass('active');
       });
+      $(this).addClass('active');
+
+      let index = $(this).index();
+      let model3 = {
+        sequenceType: typeName[index],
+        traceSet: sequences[index].traceSet
+      };
+      model3.serviceSequenceString = "";
+      for(let i = 0; i < sequences[index].serviceSequence.length - 1; i++){
+        model3.serviceSequenceString += sequences[index].serviceSequence[i] + " -> ";
+      }
+      model3.serviceSequenceString += sequences[index].serviceSequence[sequences[index].serviceSequence.length - 1];
+
+      $('#asyncTraceList').html(asyncModalListTemplate({
+        contextRoot,
+        ...model3
+      }));
+      $(this).trigger('bindAsyncTraceClick');
     });
 
+    $(this).trigger('bindAsyncTraceClick');
     $('#asyncSequenceButton').show();
+
+    // asyncBar.on('click', function(params){
+    //   console.log("params:");
+    //   console.log(params);
+    //
+    //   let index = params.data.name.split('-')[1];
+    //   // console.log("index=" + index);
+    //   const model = sequences[index - 1];
+    //   model.sequenceType = params.data.name;
+    //   // console.log(JSON.stringify(model));
+    //   model.serviceSequenceString = "";
+    //   for(let i = 0; i < model.serviceSequence.length - 1; i++){
+    //     model.serviceSequenceString += model.serviceSequence[i] + " -> ";
+    //   }
+    //   model.serviceSequenceString += model.serviceSequence[model.serviceSequence.length - 1];
+    //
+    //   $('#asyncList').html(asyncModalListTemplate({
+    //     contextRoot,
+    //     ...model
+    //   }));
+    //
+    //   $('.async-traceid').bind('click', function(){
+    //     let traceId = $.trim($(this).html());
+    //     $('.tree-node').each(function () {
+    //        let title = $.trim($(this).find('.title').html());
+    //        if(title == traceId){
+    //          $(this).click();
+    //        }
+    //     });
+    //     $('#asyncModal').modal('hide');
+    //   });
+    // });
+
+  };
+
+  this.bindAsyncTraceClick = function(){
+    $('.async-traceid').bind('click', function(){
+      let traceId = $.trim($(this).html());
+      $('.tree-node').each(function () {
+        let title = $.trim($(this).find('.title').html());
+        if(title == traceId){
+          $(this).click();
+        }
+      });
+      $('#asyncModal').modal('hide');
+    });
   };
 
 
@@ -380,6 +439,7 @@ export default component(function ServiceInfoModal() {
     this.on(document, 'showServiceInstanceInfo',this.showServiceInstanceInfo);
     this.on(document, 'showNodeInfo',this.showNodeInfo);
     this.on(document, 'showAsyncSequences',this.showAsyncSequences);
+    this.on(document, 'bindAsyncTraceClick',this.bindAsyncTraceClick);
   });
 });
 

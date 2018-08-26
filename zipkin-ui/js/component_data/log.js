@@ -4,7 +4,8 @@ import '../../libs/layer/layer';
 
 
 // const address = 'http://10.141.212.25';
-const address = 'http://10.141.212.137';
+// const address = 'http://10.141.212.137';
+const address = 'http://10.141.212.146';
 
 export default component(function dependency() {
 
@@ -991,63 +992,72 @@ export default component(function dependency() {
 
   //not finish
   this.getAsyncSequenceOfTraceType = function(e, d){
-    const data = {
-      "status": true,
-      "message": "Succeed to get service with instance of TSC by request type. The size is [19].",
-      "asyn": true,
-      "asynService": ["ts-basic-service", "ts-config-service", "ts-price-service"],
-      "sequences": [
-        {
-          "serviceSequence":["ts-basic-service", "ts-config-service", "ts-price-service"],
-          "errorRate": 0.2,
-          "traceSet": ["471f89d7b403fe75", "xxxxxxxxxxxxxxx"]
-        },
-        {
-          "serviceSequence":["ts-basic-service", "ts-price-service", "ts-config-service"],
-          "errorRate": 0.5,
-          "traceSet": ["471f89d7b403fe75", "471f89d7b403fe75"]
-        }
-      ]
+    // const data = {
+    //   "status": true,
+    //   "message": "Succeed to get service with instance of TSC by request type. The size is [19].",
+    //   "asyn": true,
+    //   "asynService": ["ts-basic-service", "ts-config-service", "ts-price-service"],
+    //   "sequences": [
+    //     {
+    //       "serviceSequence":["ts-basic-service", "ts-config-service", "ts-price-service"],
+    //       "errorRate": 0.2,
+    //       "traceSet": ["471f89d7b403fe75", "xxxxxxxxxxxxxxx"]
+    //     },
+    //     {
+    //       "serviceSequence":["ts-basic-service", "ts-price-service", "ts-config-service"],
+    //       "errorRate": 0.5,
+    //       "traceSet": ["471f89d7b403fe75", "471f89d7b403fe75"]
+    //     }
+    //   ]
+    // };
+    // if(data.status && data.asyn){
+    //   this.trigger('renderAsyncServiceBorder', {asynServices: data.asynService});
+    //   this.trigger('showAsyncSequences', {sequences: data.sequences});
+    // } else{
+    //   $('#asyncSequenceButton').hide();
+    // }
+
+    let request = {
+      requestType: d.requestType,
+      services: d.services
     };
-    if(data.status && data.asyn){
-      this.trigger('renderAsyncServiceBorder', {asynServices: data.asynService});
-      this.trigger('showAsyncSequences', {sequences: data.sequences});
-    } else{
-      $('#asyncSequenceButton').hide();
+    let parm = window.location.search;
+    if (parm.length > 1){
+      parm = parm.substring(1,parm.length);
+      request.endTime = Number(parm.split('&')[0].split('=')[1]) ;
+      request.lookback = request.endTime - Number(parm.split('&')[1].split('=')[1]) ;
+    }
+    else{
+      request.endTime = (new Date()).getTime();
+      request.lookback = 86400000;
     }
 
+    console.log("getAsyncSequenceOfTraceType...");
+    console.log(JSON.stringify(request));
 
-    // let request = {
-    //   requestType: d.requestType,
-    //   services: d.services
-    // };
-    // let parm = window.location.search;
-    // if (parm.length > 1){
-    //   parm = parm.substring(1,parm.length);
-    //   request.endTime = Number(parm.split('&')[0].split('=')[1]) ;
-    //   request.lookback = request.endTime - Number(parm.split('&')[1].split('=')[1]) ;
-    // }
-    // else{
-    //   request.endTime = (new Date()).getTime();
-    //   request.lookback = 86400000;
-    // }
-    //
-    // $.ajax(address + ':17319/', {
-    //   async: true,
-    //   type: 'post',
-    //   dataType: 'json',
-    //   contentType: "application/json",
-    //   data: JSON.stringify(request)
-    // }).done(data => {
-    //   console.log(data);
-    //   if(data.status){
-    //     // this.trigger('',{list: data.list});
-    //   } else {
-    //     layer.msg('获取异步顺序信息失败',{icon:2});
-    //   }
-    // }).fail(e => {
-    //   layer.msg('获取异步顺序信息失败',{icon:2});
-    // });
+    $.ajax(address + ':18888/sequences', {
+      async: true,
+      type: 'post',
+      dataType: 'json',
+      contentType: "application/json",
+      data: JSON.stringify(request)
+    }).done(data => {
+      console.log(data);
+      if(data.status && data.asyn){
+        this.trigger('renderAsyncServiceBorder', {asynServices: data.asynService});
+        this.trigger('showAsyncSequences', {sequences: data.sequences});
+      } else{
+        $('#asyncSequenceButton').hide();
+      }
+      // if(data.status){
+      //   this.trigger('renderAsyncServiceBorder', {asynServices: data.asynService});
+      //   this.trigger('showAsyncSequences', {sequences: data.sequences});
+      // } else {
+      //   layer.msg('获取异步顺序信息失败',{icon:2});
+      // }
+    }).fail(e => {
+      layer.msg('获取异步顺序信息失败',{icon:2});
+    });
 
   };
 

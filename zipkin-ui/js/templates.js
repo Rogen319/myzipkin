@@ -10,3 +10,4 @@ export const errorRatePanelTemplate = require('../templates/errorRatePanel.musta
 export const traceLogTableTemplate = require('../templates/traceLogTable.mustache');
 export const asyncModalBodyTemplate = require('../templates/asyncModalBody.mustache');
 export const asyncModalListTemplate = require('../templates/asyncModalList.mustache');
+export const asyncModalRightCardTemplate = require('../templates/asyncModalRightCard.mustache');

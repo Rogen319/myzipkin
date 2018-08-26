@@ -243,8 +243,8 @@ export default component(function select() {
       let node = $(temp);
       if(node[0]){
         node = $(temp)[0].childNodes[0];
-        node.style.stroke = "#CC0000";
-        node.style.strokeWidth = "3px";
+        node.style.stroke = "#6699CC";
+        node.style.strokeWidth = "8px";
       }
     });
 
