@@ -101,7 +101,7 @@ export default component(function errorRate() {
       pieData[i] = dataItem;
     }
     let options = {
-      backgroundColor: 'rgba(0,0,0,0)',
+      // backgroundColor: 'rgba(0,0,0,0)',
       title: {
         text: '错误率分布图',
         left: 'center',
@@ -111,6 +111,16 @@ export default component(function errorRate() {
         trigger: 'item',
         formatter: "{a} <br/>{b} : {c}% ({d}%)"
       },
+      toolbox: {
+        show : true,
+        feature : {
+          dataView : {show: true, readOnly: false},
+          magicType : {show: true, type: ['line', 'bar']},
+          restore : {show: true},
+          saveAsImage : {show: true}
+        }
+      },
+      calculable : true,
       legend: {
         orient: 'vertical',
         left: 'left',
@@ -178,7 +188,7 @@ export default component(function errorRate() {
       barData[i] = dataItem;
     }
     let options = {
-      backgroundColor: 'white',
+      // backgroundColor: 'white',
       title: {
         text: '错误率分布图',
         left: 'center'
@@ -190,6 +200,16 @@ export default component(function errorRate() {
           type: 'shadow'
         }
       },
+      toolbox: {
+        show : true,
+        feature : {
+          dataView : {show: true, readOnly: false},
+          magicType : {show: true, type: ['line', 'bar']},
+          restore : {show: true},
+          saveAsImage : {show: true}
+        }
+      },
+      calculable : true,
       grid: {
         left: '22%'
       },
